@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Le questionnaire de L'Équipage pour choisir un film ou un jeu Steam à plusieurs.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Séance à deux</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : une salle de cinéma la nuit — un ticket central qui avance écran par écran, puis une affiche des résultats */
+:root{
+  --velvet:#1a0f17; --velvet-2:#26161f; --seat:#3a2230;
+  --marquee:#f4b63f; --bulb:#ffe3a3; --ink:#f3e9e4; --muted:#b9a3ad; --line:#4a2d3c; --red:#e2574c;
+  --f-display:"Anton","Impact","Arial Narrow",sans-serif;
+  --f-body:"Work Sans",system-ui,-apple-system,sans-serif;
+  --f-mono:"DM Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--velvet);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px;
+  background-image:radial-gradient(ellipse 80% 40% at 50% 0%, #3b1d2c 0%, transparent 70%);min-height:100%}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+header{text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.bulbs{display:flex;gap:10px;justify-content:center}
+.bulbs i{width:7px;height:7px;border-radius:50%;background:var(--bulb);box-shadow:0 0 8px var(--marquee);animation:blink 2.4s infinite}
+.bulbs i:nth-child(2n){animation-delay:1.2s}
+@keyframes blink{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.bulbs i{animation:none}}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(44px,11vw,76px);line-height:.95;letter-spacing:.02em;margin:0;color:var(--marquee);
+  text-transform:uppercase;text-shadow:0 0 22px rgba(244,182,63,.35);text-wrap:balance}
+.tag{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+.ticket{background:var(--velvet-2);border:1px solid var(--line);border-radius:6px;position:relative;padding:28px 24px;display:flex;flex-direction:column;gap:20px}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:22px;height:22px;border-radius:50%;background:var(--velvet);border:1px solid var(--line);transform:translateY(-50%)}
+.ticket::before{left:-12px;clip-path:inset(0 0 0 50%)} .ticket::after{right:-12px;clip-path:inset(0 50% 0 0)}
+.stub{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;
+  border-bottom:1px dashed var(--line);padding-bottom:12px}
+.stub b{color:var(--marquee);font-weight:500}
+h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,6vw,34px);line-height:1.05;margin:0;text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+.hint{color:var(--muted);margin:-10px 0 0;font-size:14px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.opt{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;background:var(--velvet);transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--muted)}
+.opt:focus-visible{outline:2px solid var(--marquee);outline-offset:2px}
+.opt[aria-pressed="true"]{border-color:var(--marquee);background:#3a2418}
+.opt strong{font-weight:600;font-size:15px}
+.opt span{font-size:13px;color:var(--muted)}
+.opt[aria-pressed="true"] strong{color:var(--marquee)}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.names{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;gap:6px;font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+input[type=text]{font:500 16px var(--f-body);color:var(--ink);background:var(--velvet);border:1px solid var(--line);border-radius:4px;padding:12px;letter-spacing:0;text-transform:none}
+input[type=text]:focus{outline:2px solid var(--marquee);outline-offset:1px;border-color:transparent}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.btn{all:unset;cursor:pointer;font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:18px;padding:12px 22px;border-radius:4px;background:var(--marquee);color:var(--velvet)}
+.btn:focus-visible,.ghost:focus-visible{outline:2px solid var(--bulb);outline-offset:3px}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.ghost{all:unset;cursor:pointer;font-family:var(--f-mono);font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.progress{height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress div{height:100%;background:var(--marquee);transition:width .25s}
+.pass{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;padding-block:20px}
+.pass p{color:var(--muted);margin:0;max-width:40ch}
+
+.results{display:flex;flex-direction:column;gap:14px}
+.film{display:grid;grid-template-columns:64px 1fr;gap:16px;background:var(--velvet-2);border:1px solid var(--line);border-radius:6px;padding:16px}
+.film.top{border-color:var(--marquee)}
+.rank{font-family:var(--f-display);font-size:44px;line-height:1;color:var(--marquee);text-align:center}
+.rank small{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.08em;margin-top:4px}
+.fbody{min-width:0;display:flex;flex-direction:column;gap:8px}
+.ftitle{font-family:var(--f-display);font-size:22px;text-transform:uppercase;letter-spacing:.02em;line-height:1.1;margin:0}
+.meta{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+.pitch{margin:0;font-size:14px}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar div{height:100%;background:var(--marquee)}
+.bar.b2 div{background:var(--bulb)}
+.why{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:var(--muted)}
+.factions{display:flex;gap:16px;flex-wrap:wrap}
+.factions a{color:var(--marquee);font-family:var(--f-mono);font-size:12px}
+.sum{font-size:14px;color:var(--muted);margin:0}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--velvet);border:1px solid var(--line);border-radius:6px;padding:4px}
+.tabb{all:unset;cursor:pointer;text-align:center;padding:10px;border-radius:4px;font-family:var(--f-display);text-transform:uppercase;letter-spacing:.05em;font-size:16px;color:var(--muted)}
+.tabb[aria-selected="true"]{background:var(--marquee);color:var(--velvet)}
+.tabb:focus-visible{outline:2px solid var(--bulb);outline-offset:2px}
+.expl{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--line);padding-top:10px}
+.vline{margin:0;font-weight:600;color:var(--bulb);font-size:14px}
+.expl b{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.pro b{color:var(--marquee)} .con b{color:var(--red)}
+.expl ul{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.con ul{color:var(--muted)}
+.flag{width:120px;height:auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));transform-origin:8% 50%;animation:flap 4s ease-in-out infinite}
+@keyframes flap{50%{transform:skewY(-2deg) scaleX(.98)}}
+@media (prefers-reduced-motion:reduce){.flag{animation:none}}
+.count{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.seats{display:flex;gap:6px}
+.seat{all:unset;cursor:pointer;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;font-family:var(--f-display);font-size:18px;color:var(--muted)}
+.seat[aria-pressed="true"]{background:var(--marquee);border-color:var(--marquee);color:var(--velvet)}
+.seat:focus-visible{outline:2px solid var(--bulb);outline-offset:2px}
+.names{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))!important}
+footer{text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.06em}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="bulbs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <svg class="flag" viewBox="4 0 142 104" role="img" aria-label="Drapeau pirate de L'Équipage"><rect x="6" y="2" width="4.5" height="100" rx="2" fill="#cfc9c4"/>
+<circle cx="8.2" cy="3" r="3.2" fill="#e8e3df"/>
+<path d="M10.5 6 C45 0 70 14 105 7 C122 4 134 5 142 7 L142 84 C130 82 120 81 105 84 C70 91 45 77 10.5 84 Z" fill="#0d0d0d" stroke="#3a3a3a" stroke-width="1"/>
+<g fill="#ece8e3" stroke="#0d0d0d" stroke-width=".9">
+  <g transform="rotate(22 76 70)"><path d="M41 68 C55 69 97 69 111 68 L111 72 C97 71 55 71 41 72 Z"/><circle cx="39" cy="67.6" r="3.3"/><circle cx="39" cy="72.4" r="3.3"/><circle cx="113" cy="67.6" r="3.3"/><circle cx="113" cy="72.4" r="3.3"/></g>
+  <g transform="rotate(-22 76 70)"><path d="M41 68 C55 69 97 69 111 68 L111 72 C97 71 55 71 41 72 Z"/><circle cx="39" cy="67.6" r="3.3"/><circle cx="39" cy="72.4" r="3.3"/><circle cx="113" cy="67.6" r="3.3"/><circle cx="113" cy="72.4" r="3.3"/></g>
+</g>
+<!-- crâne -->
+<path d="M58 52 C49 47 46 36 50 27 C55 17 68 12 81 13 C92 14 99 21 101 30 C101.5 33 101 35 100 36 L98 37.5 C100 40 102 43 103 46.5 L99.5 47.5 C100.5 49.5 100.5 51.5 99.5 53 L98 54.5 L82 55 C78 55 74 53 72 50 C68 52 63 53 58 52 Z" fill="#ece8e3" stroke="#0d0d0d" stroke-width="1"/>
+<!-- mandibule -->
+<path d="M70 49.5 C69.5 54 70 58 72 60.5 C80 63 90 63.5 97 61.5 C99 60.5 99.5 58.5 98.5 56 L82 56.5 C79 56.5 77 54 76 51 Z" fill="#ece8e3" stroke="#0d0d0d" stroke-width="1"/>
+<!-- ombrages -->
+<path d="M50 30 C47 40 51 48 58 52 C63 53 67 52.5 70 51 C62 49 55 42 54 32 Z" fill="#b5afa9"/>
+<path d="M74 48 C80 46.5 88 46.5 95 48.5 C93 51 88 53.5 82 54 C78 53.5 75.5 51 74 48 Z" fill="#b5afa9"/>
+<path d="M72 60.2 C80 62.5 90 63 96.5 61.2 C92 60.5 85 60.5 78 59 Z" fill="#b5afa9"/>
+<!-- orbite et arcade -->
+<path d="M85.5 33.8 C89 31.8 95.5 32 98.2 35.6 C99 39.5 96.8 43.4 92.2 43.7 C87.6 44 84.6 41.2 84.5 38 C84.4 36.4 84.8 35 85.5 33.8 Z" fill="#0d0d0d"/>
+<path d="M84 32.5 C88 30.2 95 30.4 99.5 34" fill="none" stroke="#0d0d0d" stroke-width=".8" opacity=".55"/>
+<!-- cavité nasale -->
+<path d="M99 40.5 C100.8 42.6 101.8 44.8 102 46.3 L99.3 47 C98.2 45 97.8 42.8 99 40.5 Z" fill="#0d0d0d"/>
+<!-- arcade zygomatique -->
+<path d="M68 46.5 C74 44.5 82 44.2 90 45.4" fill="none" stroke="#0d0d0d" stroke-width="1.1" stroke-linecap="round"/>
+<!-- conduit auditif, suture -->
+<ellipse cx="65.5" cy="47.5" rx="1.9" ry="2.5" fill="#0d0d0d"/>
+<path d="M60 32 C65 35 67 40 65.5 44" fill="none" stroke="#0d0d0d" stroke-width=".7" opacity=".5"/>
+<!-- dents -->
+<path d="M85 53.8 V57 M88 53.7 V57 M91 53.6 V56.8 M94 53.5 V56.6 M96.6 53.6 V56.4" stroke="#0d0d0d" stroke-width=".8"/>
+<!-- bandana -->
+<path d="M48 36 C47 23 60 13 77 12.5 C91 12.5 100 20 101.5 29.5 C93 27 84 26.5 74 27.5 C63 28.5 55 31.5 48 36 Z" fill="#0d0d0d" stroke="#ece8e3" stroke-width="1.2"/>
+<path d="M58 22 C66 20 76 21 84 24 M66 16 C74 15.5 84 17 92 21" fill="none" stroke="#ece8e3" stroke-width=".6" opacity=".55"/>
+<g fill="#ece8e3"><circle cx="61" cy="26" r="1"/><circle cx="70" cy="24.5" r="1"/><circle cx="79" cy="20" r="1"/><circle cx="88" cy="18" r="1"/><circle cx="74" cy="15.5" r="1"/><circle cx="64" cy="18.5" r="1"/><circle cx="93" cy="25" r="1"/><circle cx="55" cy="29.5" r="1"/></g>
+<path d="M49.5 32.5 C45.5 31 43 33 43.5 36 C44 38.5 47 39.3 50 37.6 Z" fill="#0d0d0d" stroke="#ece8e3" stroke-width="1.1"/>
+<path d="M44.2 35 C38 35.8 32.5 39.5 27.5 45 C32.5 44.6 37 42.8 40.4 40.4 C38.8 44.2 38.4 48.4 39.6 52.4 C42.2 47.2 43.6 42.2 45.2 37.6 Z" fill="#0d0d0d" stroke="#ece8e3" stroke-width="1.1" stroke-linejoin="round"/>
+</svg>
+    <div class="tag" style="color:var(--bulb)">L'Équipage présente</div>
+    <h1 id="h1">Séance à deux</h1>
+    <div class="tag" id="kick"></div>
+  </header>
+  <main id="app"></main>
+  <footer>L'Équipage · Chacun répond à son tour, sans regarder l'écran de l'autre.</footer>
+</div>
+
+<script>
+// m: humeurs (rire, frisson, cerveau, emotion, adrena, reve) · i: intensité 1-3 · l: langue
+const FILMS=[
+["Le Dîner de cons",1998,80,"fr",["rire"],1,"Pignon, un dîner piège et une soirée qui déraille."],
+["OSS 117 : Le Caire, nid d'espions",2006,99,"fr",["rire"],1,"Dujardin en espion beauf et sûr de lui. Répliques cultes."],
+["Intouchables",2011,112,"fr",["rire","emotion"],1,"Le duo Cluzet-Omar Sy, drôle et touchant."],
+["La Cité de la peur",1994,93,"fr",["rire"],1,"Les Nuls à Cannes. Absurde du début à la fin."],
+["Kaamelott – Premier Volet",2021,120,"fr",["rire","reve"],1,"Arthur revient, la table ronde aussi, en grand format."],
+["Le Grand Bain",2018,122,"fr",["rire","emotion"],1,"Des quadras en crise montent une équipe de natation synchronisée."],
+["Le Prénom",2012,109,"fr",["rire"],1,"Un dîner de famille qui part en vrille à cause d'un prénom."],
+["Les Bronzés font du ski",1979,90,"fr",["rire"],1,"Le Splendid à la montagne. Indémodable."],
+["Astérix et Obélix : Mission Cléopâtre",2002,107,"fr",["rire"],1,"Chabat, Jamel, Darmon. On connaît les répliques par cœur."],
+["Superbad",2007,113,"en",["rire"],1,"Deux lycéens, une soirée, tout tourne mal."],
+["The Grand Budapest Hotel",2014,99,"en",["rire","reve"],1,"Un concierge, un tableau volé, l'univers pastel de Wes Anderson."],
+["Very Bad Trip",2009,100,"en",["rire"],1,"Lendemain d'enterrement de vie de garçon à Vegas. Personne ne se souvient de rien."],
+["Shaun of the Dead",2004,99,"en",["rire","frisson"],2,"Une invasion de zombies vue depuis le pub du coin."],
+["À couteaux tirés",2019,130,"en",["rire","cerveau"],1,"Whodunit malin avec Daniel Craig en détective sudiste."],
+["Le Loup de Wall Street",2013,180,"en",["rire"],3,"DiCaprio en trader sous excès permanents. Long mais furieux."],
+["Ratatouille",2007,111,"en",["rire","reve"],1,"Un rat cuisinier à Paris. Marche à tout âge et à toute heure."],
+["Get Out",2017,104,"en",["frisson","cerveau"],2,"Un week-end chez la belle-famille, très mal à l'aise."],
+["Shining",1980,146,"en",["frisson"],3,"Un hôtel vide en hiver et Jack Nicholson qui perd pied."],
+["Alien",1979,117,"en",["frisson","adrena"],3,"Huit dans un vaisseau, une créature à bord."],
+["Hérédité",2018,127,"en",["frisson"],3,"Un deuil familial qui devient cauchemar. Très éprouvant."],
+["Sans un bruit",2018,90,"en",["frisson"],2,"Un monde où le moindre son vous condamne. Tendu et court."],
+["Grave",2016,99,"fr",["frisson"],3,"Une étudiante végétarienne en école véto découvre la viande. Âmes sensibles s'abstenir."],
+["Se7en",1995,127,"en",["frisson","cerveau"],3,"Deux flics, sept péchés, une fin qui reste en tête."],
+["Le Silence des agneaux",1991,118,"en",["frisson","cerveau"],3,"Clarice face à Hannibal Lecter."],
+["Nope",2022,130,"en",["frisson"],2,"Quelque chose rôde dans le ciel d'un ranch californien."],
+["Parasite",2019,132,"ko",["cerveau","frisson"],2,"Une famille pauvre s'infiltre chez des riches. Palme d'or."],
+["Old Boy",2003,120,"ko",["frisson","adrena"],3,"Enfermé 15 ans sans savoir pourquoi. Violent et inoubliable."],
+["Inception",2010,148,"en",["cerveau","adrena"],2,"Des braquages à l'intérieur des rêves."],
+["Memento",2000,113,"en",["cerveau"],2,"Un homme sans mémoire immédiate traque un tueur, raconté à l'envers."],
+["Interstellar",2014,169,"en",["reve","emotion","cerveau"],2,"Un voyage à travers un trou de ver pour sauver l'humanité."],
+["Premier Contact",2016,116,"en",["cerveau","emotion"],2,"Une linguiste tente de parler avec des extraterrestres."],
+["The Truman Show",1998,103,"en",["cerveau","emotion"],1,"Un homme découvre que sa vie est une émission de télé."],
+["Ex Machina",2014,108,"en",["cerveau"],2,"Un huis clos avec une IA plus maline qu'elle n'en a l'air."],
+["Prisoners",2013,153,"en",["frisson","cerveau"],3,"Deux fillettes disparaissent, un père prêt à tout."],
+["Zodiac",2007,157,"en",["cerveau"],2,"L'enquête obsessionnelle sur un tueur jamais arrêté."],
+["Gone Girl",2014,149,"en",["cerveau","frisson"],2,"Une femme disparaît, son mari devient suspect n°1."],
+["The Social Network",2010,120,"en",["cerveau"],1,"La création de Facebook, dialogues à toute vitesse."],
+["Fight Club",1999,139,"en",["cerveau","adrena"],3,"Première règle : on n'en parle pas."],
+["Anatomie d'une chute",2023,151,"fr",["cerveau"],2,"Un procès qui fait douter jusqu'au bout. Palme d'or."],
+["La Haine",1995,98,"fr",["cerveau","emotion"],3,"24 heures en banlieue après une émeute. Noir et blanc."],
+["Oppenheimer",2023,180,"en",["cerveau"],2,"Le père de la bombe atomique, par Nolan."],
+["Mad Max: Fury Road",2015,120,"en",["adrena"],3,"Deux heures de poursuite dans le désert. Ça ne s'arrête jamais."],
+["John Wick",2014,101,"en",["adrena"],3,"Ne jamais toucher au chien de Keanu Reeves."],
+["Heat",1995,170,"en",["adrena"],2,"De Niro contre Al Pacino, braqueur contre flic."],
+["Top Gun: Maverick",2022,131,"en",["adrena"],1,"Les scènes de vol sont folles. Gros plaisir simple."],
+["Mission: Impossible – Fallout",2018,147,"en",["adrena"],2,"Tom Cruise saute de partout, pour de vrai."],
+["Piège de cristal",1988,132,"en",["adrena"],2,"Bruce Willis, une tour, des terroristes. Le modèle du genre."],
+["Léon",1994,110,"en",["adrena","emotion"],2,"Un tueur à gages et une gamine de 12 ans à New York."],
+["Terminator 2",1991,137,"en",["adrena"],2,"Schwarzenegger change de camp. Effets qui tiennent encore."],
+["Kill Bill : Volume 1",2003,111,"en",["adrena"],3,"La Mariée se venge, sabre en main."],
+["Pulp Fiction",1994,154,"en",["rire","adrena"],3,"Tarantino, histoires croisées, dialogues cultes."],
+["Snatch",2000,104,"en",["rire","adrena"],2,"Un diamant volé, des gangsters londoniens, Brad Pitt incompréhensible."],
+["Baby Driver",2017,113,"en",["adrena","rire"],2,"Un chauffeur de braqueurs qui conduit en rythme."],
+["Drive",2011,100,"en",["adrena"],2,"Ryan Gosling, une veste à scorpion, une BO synthé."],
+["BAC Nord",2020,104,"fr",["adrena"],3,"Des flics de Marseille dans les quartiers nord."],
+["Le Chant du loup",2019,115,"fr",["adrena"],2,"Thriller en sous-marin, l'oreille d'or face à la crise nucléaire."],
+["Le Bon, la Brute et le Truand",1966,178,"en",["adrena"],2,"Le western de Leone, trois hommes et un trésor."],
+["Edge of Tomorrow",2014,113,"en",["adrena","rire"],2,"Tom Cruise meurt et recommence la même journée."],
+["Jurassic Park",1993,127,"en",["adrena","reve"],2,"Les dinosaures sont de retour. Toujours aussi efficace."],
+["Le Voyage de Chihiro",2001,125,"ja",["reve"],1,"Une fillette coincée dans un monde d'esprits. Miyazaki au sommet."],
+["Princesse Mononoké",1997,134,"ja",["reve","adrena"],2,"La forêt contre les hommes, épique et sombre."],
+["Le Seigneur des anneaux : La Communauté de l'anneau",2001,178,"en",["reve","adrena"],2,"Le début de la quête. À ne lancer que si vous êtes en forme."],
+["Retour vers le futur",1985,116,"en",["reve","rire"],1,"Marty, Doc et une DeLorean. Le film qui met tout le monde d'accord."],
+["Le Fabuleux Destin d'Amélie Poulain",2001,122,"fr",["reve","rire"],1,"Montmartre, petits bonheurs et Yann Tiersen."],
+["Spider-Man : New Generation",2018,117,"en",["reve","adrena"],1,"Miles Morales et une animation qui ne ressemble à rien d'autre."],
+["Dune",2021,155,"en",["reve","adrena"],2,"Arrakis, l'épice, les vers géants. Visuellement énorme."],
+["Everything Everywhere All at Once",2022,139,"en",["reve","rire","emotion"],2,"Une laverie, le multivers et beaucoup de cœur."],
+["Le Labyrinthe de Pan",2006,118,"es",["reve","frisson"],3,"Un conte de fées cruel dans l'Espagne franquiste."],
+["Le Comte de Monte-Cristo",2024,178,"fr",["reve","adrena"],2,"Niney en vengeur masqué. Grand spectacle à la française."],
+["Coco",2017,105,"en",["emotion","reve"],1,"Le jour des morts au Mexique. Prévoir les mouchoirs."],
+["Là-haut",2009,96,"en",["emotion","rire"],1,"Une maison qui s'envole avec des ballons. Les 10 premières minutes vous détruisent."],
+["La La Land",2016,128,"en",["emotion","reve"],1,"Comédie musicale à Los Angeles, fin douce-amère."],
+["Eternal Sunshine of the Spotless Mind",2004,108,"en",["emotion","cerveau"],2,"Effacer quelqu'un de sa mémoire, et le regretter."],
+["Whiplash",2014,107,"en",["emotion","adrena"],2,"Un batteur et un prof tyrannique. Tension pure."],
+["Les Évadés",1994,142,"en",["emotion"],2,"L'espoir derrière les murs de Shawshank."],
+["Will Hunting",1997,126,"en",["emotion"],1,"Un génie de la banlieue de Boston et son psy."],
+["Les Tontons flingueurs",1963,105,"fr",["rire"],1,"Audiard, Ventura, Blier. Les dialogues les plus cités du cinéma français."],
+["Le père Noël est une ordure",1982,88,"fr",["rire"],1,"Une permanence SOS Détresse le soir de Noël. Le Splendid en roue libre."],
+["Les Visiteurs",1993,107,"fr",["rire","reve"],1,"Un chevalier et son écuyer débarquent en 1992. Okayyy."],
+["Les Combattants",2014,98,"fr",["rire","emotion"],1,"Un stage militaire, une fille qui se prépare à la fin du monde. Frais et drôle."],
+["Mandibules",2020,77,"fr",["rire"],1,"Deux idiots trouvent une mouche géante et veulent la dresser. Dupieux, 1 h 17 de n'importe quoi."],
+["Hors normes",2019,114,"fr",["emotion","rire"],1,"Cassel et Kad Merad s'occupent de jeunes autistes que personne ne veut prendre."],
+["Petit Paysan",2017,90,"fr",["frisson","emotion"],2,"Un éleveur cache une épidémie dans son troupeau. Un thriller à la ferme, tendu."],
+["La nuit a dévoré le monde",2018,94,"fr",["frisson"],2,"Seul survivant dans un immeuble parisien pendant une invasion de zombies."],
+["Vampires en toute intimité",2014,86,"en",["rire"],1,"Un faux documentaire sur des colocs vampires. Le film qui a lancé la série."],
+["À la poursuite de Ricky Baker",2016,101,"en",["rire","emotion","reve"],1,"Un ado et son oncle bourru en cavale dans la brousse néo-zélandaise."],
+["Palm Springs",2020,90,"en",["rire","reve"],1,"Coincés dans la même journée de mariage, encore et encore."],
+["Booksmart",2019,102,"en",["rire"],1,"Deux premières de la classe veulent rattraper quatre ans de fêtes en une nuit."],
+["Bons baisers de Bruges",2008,107,"en",["rire","cerveau"],2,"Deux tueurs à gages planqués à Bruges. Humour noir très british."],
+["The Nice Guys",2016,116,"en",["rire","adrena"],2,"Gosling et Crowe en détectives minables dans le L.A. des années 70."],
+["Nobody",2021,92,"en",["adrena","rire"],3,"Un père de famille tranquille qu'il ne fallait pas énerver."],
+["Crazy Kung Fu",2004,99,"zh",["rire","adrena"],2,"Kung-fu façon cartoon dans un immeuble de Shanghai."],
+["Coherence",2013,89,"en",["cerveau","frisson"],2,"Un dîner entre amis le soir où passe une comète. Tourné pour presque rien, fascinant."],
+["Prédestination",2014,97,"en",["cerveau"],2,"Un agent qui voyage dans le temps. Le twist vous retourne le cerveau."],
+["Moon",2009,97,"en",["cerveau","emotion"],2,"Seul sur une base lunaire, un homme découvre un secret sur lui-même."],
+["Nightcrawler",2014,117,"en",["cerveau","frisson"],2,"Jake Gyllenhaal filme les accidents de nuit pour la télé. Glaçant."],
+["Memories of Murder",2003,132,"ko",["cerveau","frisson"],2,"Des flics de campagne coréens traquent un tueur en série. Par le réalisateur de Parasite."],
+["Snowpiercer",2013,126,"en",["adrena","cerveau"],2,"Le reste de l'humanité dans un train qui fait le tour du globe gelé."],
+["Upgrade",2018,100,"en",["adrena","cerveau"],3,"Une puce implantée prend le contrôle de son corps pendant les combats."],
+["The Raid",2011,101,"id",["adrena"],3,"Un immeuble, des flics, des gangsters à chaque étage. Combats hallucinants."],
+["Dernier train pour Busan",2016,118,"ko",["adrena","frisson"],3,"Une épidémie de zombies dans un TGV coréen."],
+["Green Room",2015,95,"en",["frisson","adrena"],3,"Un groupe punk coincé dans un bar de néonazis. Survie brutale."],
+["It Follows",2014,100,"en",["frisson"],2,"Quelque chose vous suit, lentement, sans jamais s'arrêter."],
+["The Witch",2015,92,"en",["frisson"],3,"Une famille puritaine isolée au bord d'une forêt, en 1630."],
+["Paprika",2006,90,"ja",["reve","cerveau"],2,"Une machine permet d'entrer dans les rêves, puis tout se mélange."],
+["Your Name",2016,106,"ja",["reve","emotion"],1,"Deux ados échangent leurs corps pendant leur sommeil."],
+["Les Enfants loups",2012,117,"ja",["emotion","reve"],1,"Une mère élève seule deux enfants mi-humains mi-loups."],
+["Le Géant de fer",1999,86,"en",["emotion","reve"],1,"Un gamin et un robot géant tombé du ciel en pleine guerre froide."],
+["Il était temps",2013,123,"en",["emotion","rire"],1,"Il peut revenir dans le passé. Une comédie romantique plus profonde qu'il n'y paraît."],
+["The Fall",2006,117,"en",["reve","emotion"],2,"Un cascadeur raconte une épopée à une fillette à l'hôpital. Images somptueuses."],
+["Short Term 12",2013,96,"en",["emotion"],2,"Une éducatrice dans un foyer pour ados. Brie Larson avant la gloire."],
+// ——— France : comédies
+["Le Gendarme de Saint-Tropez",1964,95,"fr",["rire"],1,"Cruchot muté sur la Côte d'Azur. De Funès à la plage, à deux pas de chez vous."],
+["Le Corniaud",1965,111,"fr",["rire"],1,"Bourvil traverse l'Italie avec une Cadillac bourrée de contrebande."],
+["Le Grand Restaurant",1966,87,"fr",["rire"],1,"De Funès en patron tyrannique d'un restaurant de luxe."],
+["La Grande Vadrouille",1966,132,"fr",["rire","adrena"],1,"De Funès et Bourvil cachent des aviateurs anglais sous l'Occupation."],
+["La Folie des grandeurs",1971,108,"fr",["rire"],1,"Un ministre véreux dans l'Espagne du XVIIe. « Il est l'or, monseignor. »"],
+["Le Grand Blond avec une chaussure noire",1972,90,"fr",["rire"],1,"Pierre Richard pris pour un espion par erreur."],
+["Les Aventures de Rabbi Jacob",1973,100,"fr",["rire"],1,"Un industriel raciste obligé de se déguiser en rabbin."],
+["Mais où est donc passée la 7e compagnie ?",1973,95,"fr",["rire"],1,"Trois soldats paumés en juin 40. Comique de répétition garanti."],
+["L'Aile ou la Cuisse",1976,104,"fr",["rire"],1,"De Funès critique gastronomique contre Coluche et la malbouffe."],
+["Le Jouet",1976,95,"fr",["rire","emotion"],1,"Un fils de milliardaire choisit un journaliste comme jouet."],
+["Les Bronzés",1978,90,"fr",["rire"],1,"Le Club Med vu par le Splendid. « On ne sait jamais sur un malentendu… »"],
+["Les Sous-doués",1980,100,"fr",["rire"],1,"Les cancres d'un lycée privé tentent de tricher au bac."],
+["La Chèvre",1981,91,"fr",["rire"],1,"Pierre Richard, le plus malchanceux des hommes, et Depardieu au Mexique."],
+["La Soupe aux choux",1981,98,"fr",["rire","reve"],1,"Deux paysans et un extraterrestre fan de soupe aux choux."],
+["Papy fait de la résistance",1983,104,"fr",["rire"],1,"Le Splendid et Jugnot en Super-Résistant. Délirant."],
+["Les Compères",1983,92,"fr",["rire"],1,"Deux hommes persuadés d'être le père du même ado fugueur."],
+["Marche à l'ombre",1984,90,"fr",["rire"],1,"Blanc et Lanvin, deux galériens à Paris."],
+["Les Fugitifs",1986,95,"fr",["rire","emotion"],1,"Un ex-braqueur pris en otage par un braqueur maladroit."],
+["La vie est un long fleuve tranquille",1988,91,"fr",["rire"],1,"Deux bébés échangés à la naissance, une famille bourgeoise, une famille Groseille."],
+["La Classe américaine",1993,70,"fr",["rire"],1,"Des films Warner redoublés avec des dialogues absurdes. Culte absolu.","g"],
+["Les Trois Frères",1995,107,"fr",["rire"],1,"Les Inconnus en frères qui ne se connaissaient pas."],
+["La Vérité si je mens !",1997,100,"fr",["rire"],1,"Un goy infiltré dans le Sentier. Répliques à gogo."],
+["Le Pari",1997,95,"fr",["rire"],1,"Didier et Bernard parient d'arrêter de fumer. Ça dégénère."],
+["Taxi",1998,86,"fr",["rire","adrena"],1,"Un chauffeur de taxi marseillais et un flic qui ne sait pas conduire."],
+["Le Goût des autres",2000,112,"fr",["rire","emotion"],1,"Un patron rustre s'éprend d'une comédienne. Jaoui-Bacri, fin et drôle.","g"],
+["La Tour Montparnasse infernale",2001,93,"fr",["rire"],1,"Éric et Ramzy laveurs de vitres face à des terroristes."],
+["Le Boulet",2002,107,"fr",["rire","adrena"],1,"Un gardien de prison et un détenu en cavale vers l'Afrique."],
+["Podium",2004,102,"fr",["rire","emotion"],1,"Un sosie de Claude François reprend du service. Poelvoorde génial."],
+["Brice de Nice",2005,98,"fr",["rire"],1,"Le surfeur niçois qui attend la vague. Cassé !"],
+["Dikkenek",2006,85,"fr",["rire"],1,"Une galerie de Belges plus beaufs les uns que les autres. Culte confidentiel.","g"],
+["Bienvenue chez les Ch'tis",2008,106,"fr",["rire"],1,"Un postier du Sud muté dans le Nord. Le carton absolu."],
+["OSS 117 : Rio ne répond plus",2009,101,"fr",["rire"],1,"Hubert Bonisseur de La Bath au Brésil, toujours aussi gênant."],
+["L'Arnacœur",2010,105,"fr",["rire","emotion"],1,"Duris spécialiste des ruptures sur commande, à Monaco."],
+["Les Tuche",2011,95,"fr",["rire"],1,"Une famille de Bouzolles gagne au loto et débarque à Monaco."],
+["Le Chef",2012,84,"fr",["rire"],1,"Jean Reno grand chef en crise, Michaël Youn cuisinier génial."],
+["Les Kaïra",2012,98,"fr",["rire"],1,"Trois potes de Melun veulent percer dans le porno amateur. Bien débile.","g"],
+["Les Garçons et Guillaume, à table !",2013,85,"fr",["rire","emotion"],1,"Guillaume Gallienne raconte sa jeunesse. Drôle et tendre."],
+["Babysitting",2014,85,"fr",["rire"],1,"Une nuit de baby-sitting filmée en found footage. La bande à Fifi."],
+["Qu'est-ce qu'on a fait au Bon Dieu ?",2014,97,"fr",["rire"],1,"Quatre filles, quatre gendres de quatre origines. Clavier dépassé."],
+["Alibi.com",2017,90,"fr",["rire"],1,"Une agence qui invente des alibis pour les infidèles."],
+["Le Sens de la fête",2017,117,"fr",["rire","emotion"],1,"Bacri traiteur d'un mariage où tout part en vrille."],
+["Problemos",2017,85,"fr",["rire"],1,"Des bobos coincés dans une ZAD pendant la fin du monde.","g"],
+["Edmond",2018,110,"fr",["rire","emotion"],1,"Rostand écrit Cyrano en trois semaines. Enlevé et joyeux.","g"],
+["Au poste !",2018,73,"fr",["rire"],1,"Un interrogatoire nocturne qui part dans l'absurde. Poelvoorde et Ludig.","g"],
+["Le Daim",2019,77,"fr",["rire","frisson"],2,"Dujardin obsédé par son blouson en daim. Dupieux, très bizarre.","g"],
+["Mon inconnue",2019,118,"fr",["rire","emotion","reve"],1,"Il se réveille dans un monde où sa femme ne le connaît pas.","gr"],
+["La Belle Époque",2019,115,"fr",["rire","emotion","reve"],1,"Une entreprise reconstitue le passé de ses clients. Auteuil revit 1974."],
+["Le Discours",2020,88,"fr",["rire"],1,"Un dîner de famille, un discours de mariage à préparer, des pensées en voix off.","g"],
+["Barbaque",2021,87,"fr",["rire","frisson"],2,"Un boucher vend de la viande de vegan. Humour très noir.","g"],
+["Incroyable mais vrai",2022,74,"fr",["rire","reve"],1,"Une cave qui fait voyager dans le temps. Dupieux, absurde.","g"],
+["Yannick",2023,67,"fr",["rire"],1,"Un spectateur prend une pièce de théâtre en otage. 1 h 07 parfaite.","g"],
+["Un p'tit truc en plus",2024,99,"fr",["rire","emotion"],1,"Deux braqueurs planqués dans une colo pour adultes handicapés."],
+// ——— France : polars, drames, aventure
+["Le Salaire de la peur",1953,153,"fr",["adrena","frisson"],2,"Quatre hommes transportent de la nitroglycérine en camion. Tension folle.","g"],
+["Les Diaboliques",1955,117,"fr",["frisson","cerveau"],2,"Une épouse et une maîtresse tuent un directeur d'école. Ou pas.","g"],
+["Les Quatre Cents Coups",1959,99,"fr",["emotion"],1,"Antoine Doinel, gamin de Paris qui fait l'école buissonnière."],
+["Le Trou",1960,132,"fr",["cerveau","adrena"],2,"Cinq détenus creusent un tunnel. Sec, précis, haletant.","g"],
+["Le Samouraï",1967,105,"fr",["adrena"],2,"Delon en tueur solitaire et silencieux. La classe absolue."],
+["L'Armée des ombres",1969,145,"fr",["cerveau","emotion"],3,"La Résistance sans héroïsme, froide et poignante."],
+["Le Cercle rouge",1970,140,"fr",["adrena","cerveau"],2,"Delon, Montand, Bourvil et un casse place Vendôme."],
+["Le Professionnel",1981,108,"fr",["adrena"],2,"Belmondo agent trahi revient se venger. Musique de Morricone."],
+["Nikita",1990,117,"fr",["adrena"],3,"Une junkie devient tueuse d'État. Luc Besson."],
+["Cyrano de Bergerac",1990,137,"fr",["emotion","reve"],1,"Depardieu en Cyrano, en vers et en panache.","r"],
+["Delicatessen",1991,99,"fr",["rire","reve"],2,"Un immeuble post-apo et un boucher aux méthodes douteuses.","g"],
+["La Cité des enfants perdus",1995,112,"fr",["reve"],2,"Un savant vole les rêves des enfants. Univers unique de Jeunet et Caro.","g"],
+["Le Cinquième Élément",1997,126,"en",["adrena","reve","rire"],1,"Bruce Willis chauffeur de taxi volant. Besson en mode pop."],
+["Les Rivières pourpres",2000,106,"fr",["frisson","cerveau"],3,"Reno et Cassel sur des meurtres dans une fac des Alpes."],
+["Le Pacte des loups",2001,142,"fr",["adrena","frisson"],3,"La Bête du Gévaudan façon film d'action et kung-fu."],
+["Haute Tension",2003,91,"fr",["frisson"],3,"Un tueur dans une ferme isolée. Slasher français très brutal.","gh"],
+["36 quai des Orfèvres",2004,110,"fr",["adrena","cerveau"],3,"Auteuil contre Depardieu, deux flics rivaux."],
+["Banlieue 13",2004,84,"fr",["adrena"],2,"Parkour et bastons dans une cité murée."],
+["Les Choristes",2004,97,"fr",["emotion"],1,"Un surveillant monte une chorale dans un internat difficile."],
+["Ne le dis à personne",2006,131,"fr",["frisson","cerveau"],2,"Huit ans après sa mort, sa femme lui envoie un mail."],
+["Mesrine : L'Instinct de mort",2008,113,"fr",["adrena"],3,"Cassel en ennemi public n°1, première partie."],
+["Largo Winch",2008,108,"fr",["adrena"],2,"Un héritier milliardaire traqué. Action à la française."],
+["Un prophète",2009,155,"fr",["cerveau","adrena"],3,"Un jeune détenu grimpe dans la hiérarchie de la prison."],
+["Les Petits Mouchoirs",2010,154,"fr",["emotion","rire"],1,"Une bande de potes en vacances au Cap-Ferret malgré un drame."],
+["Incendies",2010,130,"fr",["cerveau","emotion"],3,"Deux jumeaux partent au Liban sur les traces de leur mère. Bouleversant.","g"],
+["Polisse",2011,127,"fr",["emotion"],3,"Le quotidien de la brigade de protection des mineurs. Fort et dur."],
+["De rouille et d'os",2012,120,"fr",["emotion"],3,"Une dresseuse d'orques et un boxeur fauché."],
+["Hippocrate",2014,102,"fr",["emotion"],1,"Un jeune interne découvre l'hôpital. Juste et prenant.","g"],
+["La Famille Bélier",2014,105,"fr",["emotion","rire"],1,"Seule entendante d'une famille sourde, elle rêve de chanter."],
+["Mustang",2015,97,"tr",["emotion"],2,"Cinq sœurs enfermées par leur famille en Turquie.","g"],
+["Patients",2016,110,"fr",["emotion","rire"],1,"Grand Corps Malade raconte sa rééducation. Drôle et lumineux.","g"],
+["120 battements par minute",2017,143,"fr",["emotion"],3,"Les militants d'Act Up dans les années 90."],
+["Le Brio",2017,95,"fr",["emotion","rire"],1,"Auteuil prof odieux, Camélia Jordana étudiante en droit."],
+["Au revoir là-haut",2017,117,"fr",["emotion","reve"],2,"Deux poilus montent une arnaque aux monuments aux morts."],
+["Jusqu'à la garde",2017,93,"fr",["frisson","emotion"],3,"Une garde partagée qui vire au cauchemar. Étouffant.","g"],
+["Les Misérables",2019,104,"fr",["cerveau","adrena"],3,"Une bavure filmée par un drone à Montfermeil."],
+["Balle perdue",2020,93,"fr",["adrena"],2,"Un mécano génie des voitures piégé par des flics ripoux.","g"],
+["La Nuit du 12",2022,115,"fr",["cerveau","frisson"],2,"Une enquête sur un féminicide qui hante les enquêteurs.","g"],
+["Novembre",2022,105,"fr",["adrena","cerveau"],2,"Les cinq jours d'enquête après les attentats du 13 novembre."],
+["Athena",2022,99,"fr",["adrena"],3,"Une cité en état de siège, plans-séquences impressionnants.","g"],
+["Les Trois Mousquetaires : D'Artagnan",2023,121,"fr",["adrena","reve"],2,"Cassel, Civil, Duris. Cape, épée et boue."],
+["Le Règne animal",2023,128,"fr",["reve","emotion"],2,"Des humains se transforment en animaux. Un père cherche sa femme.","g"],
+["Vermines",2023,103,"fr",["frisson"],2,"Des araignées mortelles envahissent un immeuble de banlieue.","gh"],
+// ——— France : animation
+["Kirikou et la Sorcière",1998,74,"fr",["reve"],1,"Un petit garçon affronte la sorcière Karaba.","a"],
+["Les Triplettes de Belleville",2003,80,"fr",["reve","rire"],1,"Une grand-mère traverse l'Atlantique pour sauver son petit-fils cycliste.","ga"],
+["Persepolis",2007,96,"fr",["emotion","cerveau"],2,"Marjane Satrapi raconte sa jeunesse en Iran.","a"],
+["Ernest et Célestine",2012,80,"fr",["emotion","reve"],1,"L'amitié interdite d'un ours et d'une souris.","ga"],
+["Astérix : Le Domaine des dieux",2014,85,"fr",["rire"],1,"César construit une résidence près du village. Alexandre Astier aux dialogues.","a"],
+["Ma vie de Courgette",2016,66,"fr",["emotion"],1,"Un garçon arrive en foyer après la mort de sa mère. Court et touchant.","ga"],
+["J'ai perdu mon corps",2019,81,"fr",["reve","emotion"],2,"Une main coupée traverse Paris pour retrouver son corps.","ga"],
+// ——— International : classiques et incontournables
+["Les Sept Samouraïs",1954,207,"ja",["adrena"],2,"Des paysans engagent sept samouraïs. Le modèle de tous les films de bande."],
+["Le Parrain",1972,175,"en",["cerveau"],3,"La famille Corleone. Le sommet du film de mafia."],
+["Les Dents de la mer",1975,124,"en",["frisson"],2,"Un requin, une plage, trois hommes sur un bateau.","h"],
+["Rocky",1976,120,"en",["emotion","adrena"],1,"Un boxeur de seconde zone a sa chance contre le champion."],
+["Star Wars, épisode IV : Un nouvel espoir",1977,121,"en",["reve","adrena"],1,"Là où tout commence."],
+["L'Empire contre-attaque",1980,124,"en",["reve","adrena"],1,"Le meilleur de la saga, avec la révélation que vous connaissez."],
+["Les Aventuriers de l'arche perdue",1981,115,"en",["adrena","reve"],1,"Indiana Jones, le fouet et le rocher qui roule."],
+["E.T. l'extra-terrestre",1982,115,"en",["reve","emotion"],1,"Un gamin cache un extraterrestre dans son placard."],
+["The Thing",1982,109,"en",["frisson"],3,"Une créature qui imite les humains dans une base en Antarctique.","h"],
+["Les Goonies",1985,114,"en",["reve","rire"],1,"Une bande de gamins à la recherche d'un trésor de pirate."],
+["La Folle Journée de Ferris Bueller",1986,103,"en",["rire"],1,"Le roi de l'école buissonnière à Chicago."],
+["Princess Bride",1987,98,"en",["reve","rire"],1,"Conte de fées parodique. « Je m'appelle Inigo Montoya. »"],
+["Mon voisin Totoro",1988,86,"ja",["reve"],1,"Deux sœurs à la campagne et un esprit de la forêt.","a"],
+["Akira",1988,124,"ja",["adrena","reve"],3,"Néo-Tokyo, motos et pouvoirs psychiques. Animé culte.","a"],
+["Le Tombeau des lucioles",1988,89,"ja",["emotion"],3,"Deux enfants seuls au Japon en 1945. Déchirant.","a"],
+["Le Cercle des poètes disparus",1989,128,"en",["emotion"],1,"Robin Williams prof qui apprend à ses élèves à penser par eux-mêmes."],
+["Les Affranchis",1990,146,"en",["adrena"],3,"Trente ans dans la mafia, par Scorsese."],
+["Un jour sans fin",1993,101,"en",["rire","reve"],1,"Bill Murray revit le même jour de la marmotte, encore et encore."],
+["Le Roi lion",1994,88,"en",["emotion","reve"],1,"Simba, Mufasa, Hakuna Matata.","a"],
+["Forrest Gump",1994,142,"en",["emotion","rire"],1,"La vie extraordinaire d'un homme simple."],
+["Toy Story",1995,81,"en",["rire","reve"],1,"Les jouets vivent quand on ne regarde pas.","a"],
+["Fargo",1996,98,"en",["rire","frisson"],2,"Un enlèvement qui tourne mal dans la neige du Minnesota."],
+["Scream",1996,111,"en",["frisson","rire"],2,"Un tueur masqué qui connaît les règles des films d'horreur.","h"],
+["Gattaca",1997,106,"en",["cerveau"],1,"Dans un monde trié par l'ADN, un homme triche pour aller dans l'espace.","g"],
+["Cube",1997,90,"en",["cerveau","frisson"],3,"Des inconnus piégés dans un labyrinthe de salles mortelles.","g"],
+["Titanic",1997,194,"en",["emotion","reve"],1,"Jack, Rose et l'iceberg.","r"],
+["The Big Lebowski",1998,117,"en",["rire"],1,"Le Duc, son tapis et une rançon. Les frères Coen."],
+["Arnaques, crimes et botanique",1998,107,"en",["rire","adrena"],2,"Quatre potes endettés auprès d'un caïd londonien."],
+["Cours, Lola, cours",1998,81,"de",["adrena","cerveau"],2,"20 minutes pour trouver 100 000 marks, trois fois.","g"],
+["Matrix",1999,136,"en",["adrena","cerveau"],2,"Pilule rouge ou pilule bleue."],
+["La Ligne verte",1999,189,"en",["emotion"],2,"Un gardien de prison et un condamné aux pouvoirs étranges."],
+["Gladiator",2000,155,"en",["adrena","emotion"],3,"Maximus, général devenu esclave, puis gladiateur."],
+["Shrek",2001,90,"en",["rire"],1,"Un ogre, un âne et une princesse pas comme les autres.","a"],
+["Harry Potter à l'école des sorciers",2001,152,"en",["reve"],1,"La lettre de Poudlard arrive enfin."],
+["La Cité de Dieu",2002,130,"pt",["adrena"],3,"Grandir dans une favela de Rio entre gangs et photo.","g"],
+["Good Bye Lenin!",2003,121,"de",["rire","emotion"],1,"Un fils cache la chute du Mur à sa mère malade.","g"],
+["Pirates des Caraïbes : La Malédiction du Black Pearl",2003,143,"en",["adrena","rire"],1,"Jack Sparrow et un équipage maudit."],
+["Le Château ambulant",2004,119,"ja",["reve"],1,"Une jeune fille transformée en vieille femme et un sorcier capricieux.","a"],
+["Les Fils de l'homme",2006,109,"en",["adrena","cerveau"],3,"Plus aucune naissance depuis 18 ans. Plans-séquences sidérants.","g"],
+["Le Prestige",2006,130,"en",["cerveau"],2,"Deux magiciens rivaux prêts à tout. Nolan."],
+["Little Miss Sunshine",2006,101,"en",["rire","emotion"],1,"Une famille bancale en minibus jaune vers un concours de beauté."],
+["La Vie des autres",2006,137,"de",["cerveau","emotion"],2,"Un agent de la Stasi espionne un couple d'artistes.","g"],
+["No Country for Old Men",2007,122,"en",["frisson","adrena"],3,"Une valise d'argent et Anton Chigurh à vos trousses."],
+["Hot Fuzz",2007,121,"en",["rire","adrena"],2,"Un super-flic londonien muté dans un village trop calme."],
+["Into the Wild",2007,148,"en",["emotion"],2,"Un jeune diplômé quitte tout pour l'Alaska."],
+["L'Orphelinat",2007,105,"es",["frisson","emotion"],2,"Une mère cherche son fils disparu dans un ancien orphelinat.","gh"],
+["The Dark Knight",2008,152,"en",["adrena","cerveau"],3,"Batman face au Joker de Heath Ledger."],
+["Wall-E",2008,98,"en",["reve","emotion"],1,"Un petit robot seul sur Terre tombe amoureux.","a"],
+["Tropic Thunder",2008,107,"en",["rire"],2,"Des acteurs capricieux perdus dans une vraie jungle."],
+["Taken",2008,93,"fr",["adrena"],3,"Liam Neeson a des compétences particulières."],
+["Inglourious Basterds",2009,153,"en",["adrena","rire"],3,"Un commando juif dans la France occupée. Tarantino."],
+["District 9",2009,112,"en",["adrena","cerveau"],3,"Des extraterrestres parqués dans un bidonville de Johannesburg."],
+["Dans ses yeux",2009,129,"es",["cerveau","emotion"],2,"Un ancien enquêteur revient sur un meurtre jamais élucidé. Oscar.","g"],
+["Shutter Island",2010,138,"en",["frisson","cerveau"],2,"Un marshal enquête dans un asile sur une île."],
+["Django Unchained",2012,165,"en",["adrena"],3,"Un esclave affranchi devient chasseur de primes."],
+["La Chasse",2012,115,"da",["emotion"],3,"Un instituteur accusé à tort. Mads Mikkelsen, éprouvant.","g"],
+["21 Jump Street",2012,109,"en",["rire"],1,"Deux flics trop vieux infiltrés au lycée."],
+["Dredd",2012,95,"en",["adrena"],3,"Un juge-flic, une tour de 200 étages, une drogue qui ralentit le temps.","g"],
+["Gravity",2013,91,"en",["adrena"],2,"Seule dans l'espace après la destruction de sa navette."],
+["Her",2013,126,"en",["emotion","cerveau"],1,"Un homme tombe amoureux de son assistant vocal.","r"],
+["Conjuring",2013,112,"en",["frisson"],2,"Une famille, une ferme hantée, deux enquêteurs du paranormal.","h"],
+["Lucy",2014,89,"fr",["adrena","cerveau"],2,"Scarlett Johansson utilise 100 % de son cerveau."],
+["Les Gardiens de la Galaxie",2014,121,"en",["adrena","rire"],1,"Des bras cassés de l'espace et une cassette des années 70."],
+["Les Nouveaux Sauvages",2014,122,"es",["rire","adrena"],3,"Six histoires de vengeance qui dérapent. Jubilatoire.","g"],
+["Vice-versa",2015,95,"en",["emotion","rire"],1,"Les émotions d'une petite fille aux commandes.","a"],
+["Seul sur Mars",2015,144,"en",["reve","rire"],1,"Matt Damon cultive des patates sur Mars."],
+["Sicario",2015,121,"en",["adrena","frisson"],3,"Une agente du FBI plongée dans la guerre des cartels."],
+["Spotlight",2015,129,"en",["cerveau"],1,"L'enquête du Boston Globe qui a fait trembler l'Église."],
+["Comancheria",2016,102,"en",["adrena"],2,"Deux frères braquent les banques qui ont ruiné leur famille.","g"],
+["L'Accusé",2016,106,"es",["cerveau"],2,"Un homme d'affaires accusé de meurtre prépare sa défense. Twist sur twist.","g"],
+["Blade Runner 2049",2017,164,"en",["reve","cerveau"],2,"Un réplicant chasseur découvre un secret enfoui. Visuellement sublime."],
+["Wind River",2017,107,"en",["frisson","cerveau"],3,"Un meurtre dans une réserve amérindienne enneigée.","g"],
+["One Cut of the Dead",2017,96,"ja",["rire","frisson"],1,"Un film de zombies fauché… et ce qui se passe derrière. Génial.","g"],
+["Searching",2018,102,"en",["cerveau","frisson"],2,"Un père cherche sa fille disparue, entièrement filmé sur écran d'ordinateur.","g"],
+["Une affaire de famille",2018,121,"ja",["emotion"],1,"Une famille de petits voleurs recueille une fillette. Palme d'or.","g"],
+["Bohemian Rhapsody",2018,134,"en",["emotion"],1,"Freddie Mercury et Queen jusqu'au Live Aid."],
+["Joker",2019,122,"en",["cerveau"],3,"La descente d'Arthur Fleck à Gotham."],
+["Le Mans 66",2019,152,"en",["adrena","emotion"],1,"Ford contre Ferrari aux 24 Heures du Mans."],
+["Jojo Rabbit",2019,108,"en",["rire","emotion"],1,"Un gamin des Jeunesses hitlériennes dont l'ami imaginaire est Hitler."],
+["Uncut Gems",2019,135,"en",["adrena"],3,"Adam Sandler bijoutier accro aux paris. Stress pur.","g"],
+["La Plateforme",2019,94,"es",["cerveau","frisson"],3,"Une prison verticale où la nourriture descend d'étage en étage.","g"],
+["Drunk",2020,117,"da",["rire","emotion"],2,"Quatre profs testent un taux d'alcool constant dans le sang.","g"],
+["Barbarian",2022,102,"en",["frisson"],3,"Une location Airbnb réservée en double. Mauvaise idée.","gh"],
+["Talk to Me",2022,95,"en",["frisson"],3,"Des ados jouent avec une main qui fait parler les morts.","gh"],
+["The Menu",2022,107,"en",["frisson","rire"],2,"Un dîner gastronomique sur une île, le chef a un plan."],
+["Les Banshees d'Inisherin",2022,114,"en",["rire","emotion"],2,"Du jour au lendemain, son meilleur ami ne veut plus lui parler.","g"],
+["RRR",2022,187,"te",["adrena","reve"],2,"Deux héros indiens contre l'Empire britannique. Démesuré et jubilatoire.","g"],
+["Midsommar",2019,148,"en",["frisson"],3,"Un festival suédois en plein jour, de plus en plus inquiétant.","h"],
+["Winter Break",2023,133,"en",["emotion","rire"],1,"Un prof grincheux coincé à Noël avec un élève. Doux et drôle.","g"]
+].map(([t,y,d,l,m,i,p,x=""],k)=>({id:k,t,y,d,l,m,i,p,x}));
+
+const CODE={gem:"g",horror:"h",anim:"a",romance:"r"};
+const tag=(list,key)=>{const s=new Set(list);FILMS.forEach(f=>f[key]=s.has(f.t)||f.x.includes(CODE[key]));};
+tag(["Grave","Le Chant du loup","Les Combattants","Mandibules","Hors normes","Petit Paysan","La nuit a dévoré le monde","Vampires en toute intimité","À la poursuite de Ricky Baker","Palm Springs","Booksmart","Bons baisers de Bruges","The Nice Guys","Nobody","Crazy Kung Fu","Coherence","Prédestination","Moon","Nightcrawler","Memories of Murder","Snowpiercer","Upgrade","The Raid","Dernier train pour Busan","Green Room","It Follows","The Witch","Paprika","Les Enfants loups","Le Géant de fer","Il était temps","The Fall","Short Term 12","Ex Machina","Premier Contact","Le Labyrinthe de Pan"],"gem");
+tag(["Shaun of the Dead","Get Out","Shining","Alien","Hérédité","Sans un bruit","Grave","Nope","La nuit a dévoré le monde","Dernier train pour Busan","Green Room","It Follows","The Witch"],"horror");
+tag(["Ratatouille","Le Voyage de Chihiro","Princesse Mononoké","Spider-Man : New Generation","Coco","Là-haut","Paprika","Your Name","Les Enfants loups","Le Géant de fer"],"anim");
+tag(["La La Land","Le Fabuleux Destin d'Amélie Poulain","Il était temps","Eternal Sunshine of the Spotless Mind"],"romance");
+
+
+// ——————————————————— JEUX STEAM (jouables à deux en ligne)
+// [nom, année, prix indicatif €, mode c=coop v=versus, envies, engagement 1-3, pitch, flags g=pépite h=horreur s=tir]
+const GAMES=[
+["Lethal Company",2023,10,"c",["rire","frisson"],1,"Ramasser de la ferraille sur des lunes hostiles pour une boîte sans pitié. Fous rires et hurlements.","h"],
+["Content Warning",2024,8,"c",["rire","frisson"],1,"Filmer des monstres pour devenir viral sur SpookTube.","gh"],
+["R.E.P.O.",2025,10,"c",["rire","frisson"],1,"Récupérer des objets de valeur dans des manoirs hantés sans les casser. Physique hilarante.","h"],
+["PEAK",2025,8,"c",["rire","explore"],1,"Escalader la montagne d'une île mystérieuse en partageant l'endurance.","g"],
+["Chained Together",2024,5,"c",["rire"],1,"Enchaînés l'un à l'autre, il faut grimper hors de l'enfer. Disputes assurées."],
+["Human: Fall Flat",2016,20,"c",["rire","cerveau"],1,"Des bonshommes en guimauve résolvent des énigmes physiques."],
+["Overcooked! All You Can Eat",2020,40,"cv",["rire"],1,"Une cuisine en feu, des commandes qui s'empilent, des cris."],
+["Moving Out",2020,25,"c",["rire"],1,"Déménageurs bourrins : le canapé passe par la fenêtre."],
+["PlateUp!",2022,20,"c",["rire","cerveau"],2,"Monter et optimiser son restaurant, jour après jour.","g"],
+["Unrailed!",2020,20,"cv",["rire","cerveau"],1,"Poser les rails devant un train qui n'attend personne. Panique coopérative.","g"],
+["Pico Park",2021,4,"c",["rire","cerveau"],1,"Des énigmes de plateforme minimalistes où il faut s'organiser.","g"],
+["Supermarket Together",2024,8,"c",["chill","rire"],2,"Gérer une supérette à plusieurs, des rayons à la caisse.","g"],
+["Gang Beasts",2017,20,"v",["rire"],1,"Des bastons de bonshommes mous sur des toits et des camions."],
+["Stick Fight: The Game",2017,5,"v",["rire","adrena"],1,"Des duels de bâtonnets avec des armes qui tombent du ciel."],
+["Ultimate Chicken Horse",2016,15,"v",["rire"],1,"Chacun pose des pièges dans le niveau, puis tente de le finir.","g"],
+["Pummel Party",2018,15,"v",["rire"],1,"Un jeu de plateau à mini-jeux qui détruit les amitiés."],
+["Party Animals",2023,20,"v",["rire"],1,"Des chiots et des canards qui se mettent des droites."],
+["Tricky Towers",2016,15,"v",["rire","cerveau"],1,"Tetris avec gravité et sorts. Chacun sa tour, chacun ses malheurs.","g"],
+["Bopl Battle",2024,10,"v",["rire","cerveau"],1,"Duels de petits blobs qui combinent des pouvoirs absurdes.","g"],
+["Golf With Your Friends",2020,15,"v",["chill","rire"],1,"Mini-golf déjanté. Parfait en fond de discussion."],
+["Brawlhalla",2017,0,"v",["adrena","rire"],1,"Baston façon Smash Bros, gratuite."],
+["Counter-Strike 2",2023,0,"cv",["adrena"],3,"Le FPS tactique de référence. Gratuit, exigeant.","s"],
+["Apex Legends",2020,0,"c",["adrena"],2,"Battle royale en escouade, gratuit et très nerveux.","s"],
+["Dota 2",2013,0,"cv",["cerveau","adrena"],3,"Le MOBA gratuit le plus profond. Prévoir des centaines d'heures."],
+["Trackmania",2020,0,"v",["chill","adrena"],1,"Courses sur circuits fous, chrono contre chrono. Version gratuite généreuse."],
+["Deep Rock Galactic",2020,30,"c",["adrena","rire"],2,"Des nains mineurs dans l'espace contre des insectes. Rock and Stone !","s"],
+["Left 4 Dead 2",2009,10,"c",["adrena","frisson"],1,"Survivre à des hordes de zombies en équipe. Toujours génial.","s"],
+["Helldivers 2",2024,40,"c",["adrena","rire"],2,"Répandre la démocratie à coups de bombardements. Tir allié inclus.","s"],
+["Borderlands 2",2012,20,"c",["adrena","rire"],3,"Un looter-shooter déjanté avec des milliards d'armes.","s"],
+["Risk of Rain 2",2020,25,"c",["adrena"],2,"Roguelike d'action où l'on empile des objets jusqu'à l'absurde.","s"],
+["Gunfire Reborn",2021,18,"c",["adrena"],1,"Roguelike FPS avec des héros animaux. Parties courtes.","gs"],
+["Payday 2",2013,10,"c",["adrena","cerveau"],2,"Braquer des banques avec des masques de clown.","s"],
+["Ready or Not",2023,50,"c",["adrena","cerveau"],3,"Interventions du SWAT réalistes et tendues.","s"],
+["Warhammer: Vermintide 2",2018,28,"c",["adrena"],2,"Massacrer des hordes d'hommes-rats au corps à corps."],
+["Dying Light",2015,20,"c",["adrena","frisson"],2,"Parkour et zombies. La nuit, c'est l'enfer.","h"],
+["Remnant II",2023,50,"c",["adrena","explore"],3,"Souls-like de tir dans des mondes générés.","s"],
+["Elden Ring Nightreign",2025,40,"c",["adrena"],2,"Elden Ring condensé en expéditions coop de 40 minutes."],
+["Monster Hunter: World",2018,30,"c",["adrena","explore"],3,"Chasser des monstres géants pour se fabriquer leur armure."],
+["GTFO",2021,35,"c",["frisson","adrena"],3,"FPS d'horreur coop exigeant, il faut tout planifier.","gsh"],
+["Hunt: Showdown 1896",2018,40,"v",["frisson","adrena"],3,"En duo, chasser des monstres pendant que d'autres équipes vous chassent.","sh"],
+["Phasmophobia",2020,14,"c",["frisson","cerveau"],2,"Enquêter sur des fantômes qui réagissent à votre voix.","h"],
+["Devour",2021,5,"c",["frisson"],1,"Fuir une possédée en brûlant des chèvres maudites.","gh"],
+["Pacify",2019,5,"c",["frisson"],1,"Une maison hantée et une poupée qu'il ne faut surtout pas réveiller.","gh"],
+["Dead by Daylight",2016,20,"c",["frisson"],2,"Survivre ensemble face à un tueur joué par un autre joueur.","h"],
+["The Forest",2018,17,"c",["frisson","explore"],2,"Crash d'avion sur une île de cannibales. Survie et construction.","h"],
+["Sons of the Forest",2024,30,"c",["frisson","explore"],3,"La suite de The Forest, plus grande et plus belle.","h"],
+["Project Zomboid",2013,20,"c",["frisson","explore"],3,"La survie zombie la plus réaliste. On meurt beaucoup.","g"],
+["7 Days to Die",2024,45,"c",["frisson","explore"],3,"Construire sa base et tenir face à la horde du septième soir."],
+["Barotrauma",2023,30,"c",["frisson","cerveau"],3,"Piloter un sous-marin sur Europe. Tout peut casser, tout le temps.","g"],
+["Abiotic Factor",2024,25,"c",["explore","rire"],2,"Des scientifiques coincés dans un labo envahi par des créatures.","g"],
+["Valheim",2021,20,"c",["explore"],3,"Survie viking : construire un drakkar, abattre des boss."],
+["Terraria",2011,10,"c",["explore","adrena"],3,"Creuser, construire, vaincre des boss. Des centaines d'heures pour 10 €."],
+["Stardew Valley",2016,14,"c",["chill","explore"],3,"Reprendre une ferme à deux. La définition du jeu cosy."],
+["Don't Starve Together",2016,15,"c",["explore","cerveau"],3,"Survie dans un monde à la Tim Burton. Dur et addictif."],
+["Raft",2022,20,"c",["explore","chill"],2,"Survivre en mer sur un radeau qui grandit."],
+["Core Keeper",2024,20,"c",["explore","chill"],2,"Creuser un monde souterrain, cultiver, combattre.","g"],
+["Grounded",2022,40,"c",["explore","frisson"],2,"Réduits à la taille d'une fourmi dans un jardin. Araignées géantes."],
+["Enshrouded",2024,30,"c",["explore"],3,"Survie-construction dans un monde fantasy noyé de brume."],
+["Palworld",2024,30,"c",["explore","rire"],3,"Capturer des créatures et les faire bosser à l'usine."],
+["Satisfactory",2024,40,"c",["cerveau","explore"],3,"Construire une usine gigantesque sur une planète extraterrestre."],
+["Factorio",2020,35,"c",["cerveau"],3,"L'usine doit grandir. Le jeu d'automatisation de référence."],
+["Sea of Thieves",2020,40,"c",["explore","rire"],2,"Pirates en ligne : naviguer, chercher des trésors, couler les autres."],
+["It Takes Two",2021,40,"c",["explore","rire"],2,"Un couple en crise transformé en poupées. Un seul achat suffit pour deux."],
+["Split Fiction",2025,50,"c",["explore","adrena"],2,"Deux autrices coincées dans leurs histoires. Un seul achat suffit pour deux."],
+["A Way Out",2018,30,"c",["adrena","explore"],1,"Deux détenus s'évadent. Un seul achat suffit pour deux."],
+["Portal 2",2011,10,"c",["cerveau","rire"],1,"La campagne coop des robots Atlas et P-Body. Indispensable."],
+["Keep Talking and Nobody Explodes",2015,15,"c",["cerveau","rire"],1,"L'un voit la bombe, l'autre lit le manuel. Parfait sur Discord."],
+["We Were Here",2017,0,"c",["cerveau"],1,"Énigmes à deux par talkie-walkie dans un château glacé. Gratuit.","g"],
+["We Were Here Together",2019,15,"c",["cerveau"],1,"La suite, plus longue et plus maligne.","g"],
+["Operation: Tango",2021,20,"c",["cerveau"],1,"Un hacker et un agent de terrain, chacun ses infos.","g"],
+["The Past Within",2022,7,"c",["cerveau","frisson"],1,"Escape game à deux, l'un dans le passé, l'autre dans le futur.","g"],
+["Escape Simulator",2021,18,"c",["cerveau","chill"],1,"Des salles d'évasion à résoudre ensemble.","g"],
+["Biped",2020,20,"c",["chill","cerveau"],1,"Deux petits robots à faire avancer pas à pas. Mignon et prenant.","g"],
+["Unravel Two",2018,20,"c",["chill"],1,"Deux bonshommes de laine liés par un fil. Doux et beau.","g"],
+["Lovers in a Dangerous Spacetime",2015,15,"c",["rire","adrena"],1,"Piloter un vaisseau à deux en courant d'un poste à l'autre.","g"],
+["Cuphead",2017,20,"c",["adrena"],2,"Boss rush au style dessin animé des années 30. Très dur. En ligne via Remote Play Together."],
+["Tabletop Simulator",2015,20,"cv",["cerveau","chill"],2,"Tous les jeux de société du monde, en ligne."],
+["Civilization VI",2016,60,"v",["cerveau"],3,"« Encore un tour… » La partie à deux qui finit à 5 h du matin."],
+["Age of Empires II: Definitive Edition",2019,20,"cv",["cerveau","adrena"],2,"Le jeu de stratégie culte, remasterisé."],
+["Forza Horizon 5",2021,60,"cv",["chill","adrena"],2,"Le Mexique en voiture, en course ou en balade."],
+["Euro Truck Simulator 2",2012,20,"c",["chill"],2,"Rouler en convoi à travers l'Europe. Étrangement apaisant."],
+["Grand Theft Auto V",2015,30,"cv",["adrena","rire"],2,"GTA Online : braquages, courses et n'importe quoi à deux.","s"],
+["Baldur's Gate 3",2023,60,"c",["explore","cerveau"],3,"Le grand RPG de 2023, toute la campagne à deux en ligne."],
+["Divinity: Original Sin 2",2017,45,"c",["cerveau","explore"],3,"RPG tactique très libre, à deux en ligne."]
+].map(([t,y,price,mode,m,e,p,x=""],k)=>({id:k,t,y,price,mode,m,e,p,gem:x.includes("g"),horror:x.includes("h"),shooter:x.includes("s")}));
+
+// ——————————————————— QUESTIONNAIRES
+const MOODS={rire:"Rire",frisson:"Frissonner",cerveau:"Se creuser la tête",emotion:"Être ému",adrena:"De l'action",reve:"S'évader"};
+const GMOODS={rire:"Chaos et fous rires",frisson:"Avoir peur",cerveau:"Réfléchir",chill:"Chill",adrena:"Action",explore:"Explorer, construire"};
+const LANG={fr:"VF · France",en:"VO anglaise",ko:"VO coréenne",ja:"VO japonaise",es:"VO espagnole",zh:"VO chinoise",id:"VO indonésienne",de:"VO allemande",da:"VO danoise",pt:"VO portugaise",tr:"VO turque",te:"VO télougou"};
+const TIRED={k:"tired",h:"Ton état de fatigue ?",s:"Sois honnête, il est tard.",o:[
+   ["fresh","En pleine forme","Je peux suivre quelque chose de compliqué"],["meh","Un peu cuit","Rien de trop long"],["zombie","Zombie","Si ça demande un effort, je m'endors"]]};
+const QF=[
+ {k:"mood",multi:2,h:"Ce soir, t'as envie de…",s:"Jusqu'à deux choix.",o:[
+   ["rire","Rire","Comédie, répliques à citer demain"],["frisson","Frissonner","Peur, suspense, lumière allumée"],
+   ["cerveau","Te creuser la tête","Twist, enquête, film dont on reparle"],["emotion","Être ému","Ça touche, ça serre la gorge"],
+   ["adrena","De l'action","Poursuites, baston, adrénaline"],["reve","T'évader","Autre monde, aventure, animation"]]},
+ {k:"int",h:"Niveau d'intensité ?",s:"Violence, tension, ambiance lourde.",o:[
+   [1,"Tranquille","On veut passer un bon moment"],[2,"Équilibré","Un peu de tension, pas trop"],[3,"Ça peut cogner","Dur, violent, dérangeant : OK"]]},
+ {k:"dur",h:"Durée maximum ?",s:"Strict : aucun film plus long ne sera proposé.",o:[
+   [100,"Court","1 h 40 max"],[120,"Standard","2 h max"],[150,"Confortable","2 h 30 max"],[999,"Pas de limite","Une fresque de 3 h, pourquoi pas"]]},
+ {k:"gem",h:"Valeur sûre ou pépite ?",o:[
+   ["cult","Valeur sûre","Les films cultes que tout le monde adore"],["gem","Pépite","Des films moins connus qu'on a envie de faire découvrir"],["mix","Les deux","Surprends-moi"]]},
+ {k:"no",multi:4,h:"Ce que tu ne supportes pas",s:"Ces films seront éliminés d'office.",none:"none",o:[
+   ["horror","L'horreur","Pas de films qui font peur"],["anim","L'animation","Que des vrais acteurs"],
+   ["romance","Les histoires d'amour","Romance, comédie musicale"],["subs","Les sous-titres","Pas de coréen, japonais, etc."],["none","Rien de tout ça","Je suis prêt à tout"]]},
+ {k:"era",h:"Plutôt quelle époque ?",o:[
+   ["old","Les classiques","Avant 2000, les valeurs sûres"],["new","Du récent","Sorti après 2010"],["any","Peu importe","Seul le film compte"]]},
+ {k:"lang",h:"Côté langue ?",o:[
+   ["fr","Un film français","Rien de tel que la VF d'origine"],["en","Plutôt américain","Hollywood et compagnie"],["any","Ouvert à tout","Coréen, japonais, sous-titres : OK"]]},
+ TIRED
+];
+const QG=[
+ {k:"mood",multi:2,h:"Ce soir, t'as envie de…",s:"Jusqu'à deux choix.",o:[
+   ["rire","Chaos et fous rires","Physique absurde, panique, cris sur Discord"],["frisson","Avoir peur","Monstres, fantômes, sursauts"],
+   ["cerveau","Réfléchir","Énigmes, stratégie, optimisation"],["chill","Chiller","Tranquille, on discute en jouant"],
+   ["adrena","De l'action","Tir, baston, réflexes"],["explore","Explorer, construire","Survie, craft, grande aventure"]]},
+ {k:"mode",h:"Ensemble ou l'un contre l'autre ?",o:[
+   ["c","En coop","Tous les deux contre le jeu"],["v","En versus","Que le meilleur gagne"],["any","Peu importe","Les deux me vont"]]},
+ {k:"budget",h:"Budget maximum ?",s:"Strict, prix indicatif hors promo. Un jeu déjà possédé compte comme gratuit.",o:[
+   [0,"Gratuit","Zéro euro ce soir"],[15,"Petit budget","15 € max"],[30,"Raisonnable","30 € max"],[999,"Peu importe","Si le jeu le vaut"]]},
+ {k:"eng",h:"Tu t'engages pour combien de temps ?",o:[
+   [1,"Juste ce soir","On lance, on comprend, on rigole"],[2,"Quelques soirées","Un jeu qu'on reprendra"],[3,"Des semaines","Une vraie aventure, une grosse partie"]]},
+ {k:"gem",h:"Hit ou pépite ?",o:[
+   ["cult","Les incontournables","Les jeux dont tout le monde parle"],["gem","Pépite","Des jeux moins connus à découvrir"],["mix","Les deux","Surprends-moi"]]},
+ {k:"no",multi:3,h:"Ce que tu ne supportes pas",s:"Ces jeux seront éliminés d'office.",none:"none",o:[
+   ["horror","L'horreur","Pas de jeux qui font peur"],["shooter","Les jeux de tir","Pas de FPS ni de flingues"],
+   ["pvp","Le versus","Je ne veux pas jouer contre mon pote"],["none","Rien de tout ça","Je suis chaud pour tout"]]},
+ TIRED
+];
+
+// ——————————————————— SCORES
+function moodScore(item,a,labels,why){
+  const mood=a.mood||[]; const hit=mood.filter(m=>item.m.includes(m));
+  if(!hit.length)return 0;
+  why.push(...hit.map(h=>labels[h]));
+  return (hit.includes(mood[0])?40:28)+(hit.length>1?6:0);
+}
+function gemScore(item,a,why){
+  if(a.gem==="gem"){ if(item.gem){why.push("Pépite");return 14;} return -4; }
+  if(a.gem==="cult") return item.gem?-2:12;
+  if(item.gem)why.push("Pépite"); return 8;
+}
+function scoreFilm(f,a){
+  const why=[]; let s=moodScore(f,a,MOODS,why);
+  s+=[20,8,-12][Math.abs(f.i-a.int)];
+  s+=gemScore(f,a,why);
+  if(a.era==="any")s+=10; else if(a.era==="old"?f.y<2000:f.y>2010)s+=10; else s-=4;
+  if(a.lang==="any")s+=f.l==="fr"||f.l==="en"?8:12;
+  else if(a.lang===f.l)s+=10; else if(f.l!=="fr"&&f.l!=="en")s-=10;
+  if(a.tired==="zombie"){ if(f.d>125)s-=15; if(f.m.includes("cerveau"))s-=8; if(f.i===1)s+=5; }
+  if(a.tired==="meh"&&f.d>145)s-=8;
+  if(a.tired==="fresh"&&f.m.includes("cerveau"))s+=3;
+  return {pct:Math.max(0,Math.min(100,Math.round(s/104*100))),why};
+}
+function scoreGame(g,a){
+  const why=[]; let s=moodScore(g,a,GMOODS,why);
+  if(a.mode==="any")s+=12; else if(g.mode.includes(a.mode)){s+=16;why.push(a.mode==="c"?"Coop":"Versus");} else s-=10;
+  s+=[18,6,-10][Math.abs(g.e-a.eng)];
+  s+=gemScore(g,a,why);
+  if(g.price===0)s+=4;
+  if(a.tired==="zombie"){ if(g.e===3)s-=12; if(g.m.includes("cerveau"))s-=8; if(g.m.includes("chill")||g.m.includes("rire"))s+=6; }
+  if(a.tired==="meh"&&g.e===3)s-=5;
+  if(a.tired==="fresh"&&g.m.includes("cerveau"))s+=3;
+  return {pct:Math.max(0,Math.min(100,Math.round(s/100*100))),why};
+}
+
+const MAXP={"Lethal Company":4,"Content Warning":4,"R.E.P.O.":6,"PEAK":4,"Chained Together":4,"Human: Fall Flat":8,"Overcooked! All You Can Eat":4,"Moving Out":4,"PlateUp!":4,"Unrailed!":4,"Pico Park":8,"Supermarket Together":8,"Gang Beasts":8,"Stick Fight: The Game":4,"Ultimate Chicken Horse":4,"Pummel Party":8,"Party Animals":8,"Tricky Towers":4,"Bopl Battle":4,"Golf With Your Friends":12,"Brawlhalla":8,"Counter-Strike 2":10,"Apex Legends":3,"Dota 2":10,"Trackmania":16,"Deep Rock Galactic":4,"Left 4 Dead 2":4,"Helldivers 2":4,"Borderlands 2":4,"Risk of Rain 2":4,"Gunfire Reborn":4,"Payday 2":4,"Ready or Not":5,"Warhammer: Vermintide 2":4,"Dying Light":4,"Remnant II":3,"Elden Ring Nightreign":3,"Monster Hunter: World":4,"GTFO":4,"Hunt: Showdown 1896":3,"Phasmophobia":4,"Devour":4,"Pacify":4,"Dead by Daylight":4,"The Forest":8,"Sons of the Forest":8,"Project Zomboid":16,"7 Days to Die":8,"Barotrauma":16,"Abiotic Factor":6,"Valheim":10,"Terraria":8,"Stardew Valley":8,"Don't Starve Together":6,"Raft":8,"Core Keeper":8,"Grounded":4,"Enshrouded":16,"Palworld":4,"Satisfactory":4,"Factorio":16,"Sea of Thieves":4,"It Takes Two":2,"Split Fiction":2,"A Way Out":2,"Portal 2":2,"Keep Talking and Nobody Explodes":16,"We Were Here":2,"We Were Here Together":2,"Operation: Tango":2,"The Past Within":2,"Escape Simulator":8,"Biped":2,"Unravel Two":2,"Lovers in a Dangerous Spacetime":4,"Cuphead":2,"Tabletop Simulator":10,"Civilization VI":12,"Age of Empires II: Definitive Edition":8,"Forza Horizon 5":12,"Euro Truck Simulator 2":8,"Grand Theft Auto V":30,"Baldur's Gate 3":4,"Divinity: Original Sin 2":4};
+GAMES.forEach(g=>g.max=MAXP[g.t]||4);
+const NUM=["","","deux","trois","quatre","cinq","six"];
+
+const MODES={
+ film:{items:FILMS,Q:QF,score:scoreFilm,noun:"films",kicker:"films, cultes, pépites et français",
+   h1:()=>"Séance à "+NUM[S.n],
+   ask:"Qui est dans le canapé ?",verdict:"Ce soir à l'affiche",go:"Lancer la séance",seat:"Spectateur",
+   filter(AS){const max=Math.min(...AS.map(a=>a.dur||999)),no=new Set(AS.flatMap(a=>a.no||[]));
+     return this.items.filter(f=>f.d<=max&&!(no.has("horror")&&f.horror)&&!(no.has("anim")&&f.anim)&&!(no.has("romance")&&f.romance)&&!(no.has("subs")&&f.l!=="fr"&&f.l!=="en"));},
+   rule(AS){return `Durée max : ${fmt(Math.min(180,...AS.map(a=>a.dur)))}, respectée pour chaque film.`;},
+   meta:f=>[f.y,fmt(f.d),LANG[f.l],"●".repeat(f.i)+"○".repeat(3-f.i)+" intensité"],
+   link:f=>["https://www.justwatch.com/fr/recherche?q="+encodeURIComponent(f.t),"Où le regarder"],
+   seen:"Déjà vu, au suivant"},
+ game:{items:GAMES,Q:QG,score:scoreGame,noun:"jeux",kicker:"jeux Steam jouables en ligne entre potes",
+   h1:()=>"Soirée jeux à "+NUM[S.n],
+   ask:"Qui est sur Discord ce soir ?",verdict:"Ce soir, on lance",go:"Lancer la soirée",seat:"Joueur",
+   filter(AS){const max=Math.min(...AS.map(a=>a.budget??999)),no=new Set(AS.flatMap(a=>a.no||[]));
+     return this.items.filter(g=>g.max>=S.n&&g.price<=max&&!(no.has("horror")&&g.horror)&&!(no.has("shooter")&&g.shooter)&&!(no.has("pvp")&&g.mode==="v"));},
+   rule(AS){const m=Math.min(...AS.map(a=>a.budget));return `Seuls les jeux jouables à ${S.n} sont gardés. `+(m===0?"Budget : gratuit uniquement.":m<999?`Budget : ${m} € max par personne, respecté pour chaque jeu.`:"Budget libre.");},
+   meta:g=>[g.y,g.price===0?"Gratuit":"≈ "+g.price+" €",g.mode==="c"?"Coop":g.mode==="v"?"Versus":"Coop et versus","Jusqu'à "+g.max+" joueurs","●".repeat(g.e)+"○".repeat(3-g.e)+" engagement"],
+   link:g=>["https://store.steampowered.com/search/?term="+encodeURIComponent(g.t),"Voir sur Steam"],
+   seen:"On l'a déjà, au suivant"}
+};
+
+// ——————————————————— EXPLICATIONS
+const ENG=["","une soirée","quelques soirées","des semaines"],INT=["","tranquille","équilibrée","intense"];
+const P=()=>[...Array(S.n).keys()];
+const listNames=idx=>{const n=idx.map(nm);return n.length<2?n.join(""):n.slice(0,-1).join(", ")+" et "+n[n.length-1];};
+function whoI(idx){return !idx.length?"":idx.length===S.n?(S.n===2?"vous deux":"vous tous"):listNames(idx);}
+function who(pred){return whoI(P().filter(i=>pred(S.ans[i])));}
+const plural=w=>w.startsWith("vous")?"êtes":w.includes(" et ")?"sont":"est";
+const isPl=w=>w.startsWith("vous")||w.includes(" et ");
+const comme=w=>w.startsWith("vous")?"comme vous le vouliez":`comme le ${isPl(w)?"voulaient":"voulait"} ${w}`;
+const alors=w=>w.startsWith("vous")?"vous vouliez":`${w} ${isPl(w)?"voulaient":"voulait"}`;
+function explain(f){
+  const pros=[],cons=[],film=S.mode==="film",L=film?MOODS:GMOODS;
+  const lab=h=>h.map(x=>L[x].toLowerCase()).join(" et ");
+  const hits=P().map(i=>(S.ans[i].mood||[]).filter(m=>f.m.includes(m)));
+  const yes=P().filter(i=>hits[i].length),no=P().filter(i=>!hits[i].length);
+  if(yes.length===S.n){
+    const same=hits.every(h=>h.join()===hits[0].join());
+    pros.push(same?`Il coche l'envie que vous avez en commun : ${lab(hits[0])}.`:`Il coche les envies de chacun : ${yes.map(i=>`${lab(hits[i])} pour ${nm(i)}`).join(", ")}.`);
+  } else if(yes.length){
+    pros.push(`Il répond ${yes.length>1?"aux envies":"à l'envie"} de ${yes.map(i=>`${nm(i)} (${lab(hits[i])})`).join(", ")}.`);
+    no.forEach(i=>cons.push(`${nm(i)} voulait plutôt ${lab(S.ans[i].mood||[])}. C'est le compromis.`));
+  }
+  if(film){
+    if(P().every(i=>S.ans[i].int===f.i))pros.push(`Intensité ${INT[f.i]}, pile ce que vous avez tous demandé.`);
+    else P().forEach(i=>{const d=f.i-S.ans[i].int;if(d)cons.push(`${d>0?"Plus intense":"Plus léger"} que ce que voulait ${nm(i)} (${INT[f.i]}).`);});
+    const max=Math.min(...P().map(i=>S.ans[i].dur));
+    pros.push(max<999?`${fmt(f.d)} : ça rentre dans votre limite de ${fmt(max)}.`:`${fmt(f.d)} au compteur.`);
+    const z=who(a=>a.tired==="zombie");
+    if(z&&f.d<=100)pros.push(`Court et sans prise de tête, adapté à la fatigue de ${z}.`);
+    const fr=who(a=>a.lang==="fr");
+    if(f.l==="fr"&&fr)pros.push(`Film français, ${comme(fr)}.`);
+    if(f.l!=="fr"&&f.l!=="en"){const op=who(a=>a.lang==="any");if(op)pros.push(`${LANG[f.l]} : ${op} ${plural(op)} prêt${op.includes(" et ")||op.startsWith("vous")?"s":""} pour les sous-titres.`);}
+    const okE=who(a=>a.era==="old"&&f.y<2000||a.era==="new"&&f.y>2010);
+    if(okE)pros.push(f.y<2000?`Un classique de ${f.y}, ${comme(okE)}.`:`Sorti en ${f.y}, assez récent pour ${okE}.`);
+    P().forEach(i=>{const e=S.ans[i].era;if(e==="old"&&f.y>=2000||e==="new"&&f.y<=2010)cons.push(`Sorti en ${f.y}, ${nm(i)} préférait ${e==="old"?"un classique":"du récent"}.`);});
+  } else {
+    if(S.n>2)pros.push(`Jouable jusqu'à ${f.max}, donc toute la bande y tient.`);
+    const c=who(a=>a.mode==="c"),v=who(a=>a.mode==="v");
+    if(c&&f.mode.includes("c"))pros.push(`Se joue en coop, ${comme(c)}.`);
+    if(v&&f.mode.includes("v"))pros.push(`Propose du versus, ${comme(v)}.`);
+    if(c&&!f.mode.includes("c"))cons.push(`Uniquement en versus alors que ${alors(c)} de la coop.`);
+    if(v&&!f.mode.includes("v"))cons.push(`Uniquement en coop alors que ${alors(v)} s'affronter.`);
+    const max=Math.min(...P().map(i=>S.ans[i].budget));
+    pros.push(f.price===0?"Gratuit : vous pouvez lancer tout de suite.":max<999?`Environ ${f.price} € chacun, dans votre budget de ${max} €.`:`Environ ${f.price} € chacun.`);
+    if(P().every(i=>S.ans[i].eng===f.e))pros.push(`Engagement prévu : ${ENG[f.e]}, exactement ce que vous visiez.`);
+    else P().forEach(i=>{const d=f.e-S.ans[i].eng;if(d)cons.push(d>0?`Demande plus de temps (${ENG[f.e]}) que ce que ${nm(i)} voulait donner.`:`Plus court que ce que ${nm(i)} cherchait : on en fait vite le tour.`);});
+    const z=who(a=>a.tired==="zombie");
+    if(z&&f.e===1)pros.push(`Prise en main immédiate, parfait pour l'état de ${z}.`);
+  }
+  const gm=who(a=>a.gem==="gem"),cl=who(a=>a.gem==="cult");
+  if(f.gem&&gm)pros.push(`Une pépite moins connue, ${comme(gm)}.`);
+  if(!f.gem&&cl)pros.push(`Une valeur sûre, ${comme(cl)}.`);
+  return {pros,cons};
+}
+function verdictLine(r,i){
+  const ps=r.s.map(x=>x.pct),hi=Math.max(...ps),lo=Math.min(...ps);
+  const top=P().filter(k=>ps[k]===hi),bot=P().filter(k=>ps[k]===lo);
+  if(hi-lo<=10)return i===0?"Le meilleur accord de la soirée : vous êtes quasiment tous au même niveau d'envie.":"Vous êtes d'accord dessus.";
+  return i===0?`Le meilleur compromis : ${whoI(top)} ${top.length>1?"sont":"est"} le plus emballé, mais ${whoI(bot)} y trouve${bot.length>1?"nt":""} son compte.`
+             :`Plutôt pour ${whoI(top)}, ${whoI(bot)} suivra${bot.length>1?"ont":""}.`;
+}
+
+// ——————————————————— ÉTAT ET RENDU
+const S={mode:"film",n:2,step:"intro",names:["Hugo","Greg","","","",""],p:0,q:0,ans:[{},{}],removed:new Set(),shown:6};
+const M=()=>MODES[S.mode];
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nm=i=>S.names[i].trim()||(M().seat+" "+(i+1));
+function fmt(d){return Math.floor(d/60)+" h "+String(d%60).padStart(2,"0");}
+function reset(){S.ans=P().map(()=>({}));S.removed.clear();S.shown=6;}
+function eligible(){return M().filter(S.ans);}
+function ranked(){
+  return eligible().filter(f=>!S.removed.has(f.id)).map(f=>{
+    const s=S.ans.map(a=>M().score(f,a)),ps=s.map(x=>x.pct);
+    const tot=Math.round(ps.reduce((a,b)=>a+b,0)/ps.length-(Math.max(...ps)-Math.min(...ps))*0.25);
+    return {f,s,tot:Math.max(0,tot)};
+  }).sort((x,y)=>y.tot-x.tot);
+}
+function setHeader(){
+  document.getElementById("h1").textContent=M().h1();
+  document.getElementById("kick").textContent=`${M().Q.length} questions chacun · ${M().items.length} ${M().kicker} · 1 verdict`;
+}
+
+function render(){
+  setHeader();
+  const Q=M().Q;
+  if(S.step==="intro"){
+    app.innerHTML=`<section class="ticket">
+      <div class="stub"><span>Admission · <b>${S.n} personnes</b></span><span>Salle L'Équipage · Séance de nuit</span></div>
+      <div class="tabs" role="tablist" aria-label="Rubrique">
+        <button role="tab" class="tabb" data-m="film" aria-selected="${S.mode==="film"}">Soirée film</button>
+        <button role="tab" class="tabb" data-m="game" aria-selected="${S.mode==="game"}">Soirée jeux Steam</button>
+      </div>
+      <h2>${M().ask}</h2>
+      <div class="count"><span class="tag">Combien vous êtes ?</span>
+        <div class="seats">${[2,3,4,5,6].map(k=>`<button class="seat" data-n="${k}" aria-pressed="${S.n===k}">${k}</button>`).join("")}</div></div>
+      <p class="hint">Chacun répond à ${Q.length} questions de son côté. On croise vos envies et on vous sort les ${M().noun} où vous tombez d'accord.</p>
+      <div class="names">${P().map(i=>`<label for="n${i}">${M().seat} ${i+1}<input type="text" id="n${i}" data-i="${i}" placeholder="${i===0?"Ton prénom":"Prénom"}" value="${esc(S.names[i])}" autocomplete="off"></label>`).join("")}</div>
+      <div class="row"><span class="tag">Durée : ${S.n} minutes environ</span><button class="btn" id="go">${M().go}</button></div>
+    </section>`;
+    app.querySelectorAll(".tabb").forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;reset();render();});
+    app.querySelectorAll(".seat").forEach(b=>b.onclick=()=>{S.n=+b.dataset.n;reset();render();});
+    app.querySelectorAll(".names input").forEach(inp=>inp.oninput=e=>S.names[+e.target.dataset.i]=e.target.value);
+    app.querySelector("#go").onclick=()=>{reset();S.step="pass";S.p=0;render();};
+    return;
+  }
+  if(S.step==="pass"){
+    app.innerHTML=`<section class="ticket pass">
+      <div class="tag">${S.p===0?"Premier passage":`Passage ${S.p+1} sur ${S.n}`}</div>
+      <h2>À ${esc(nm(S.p))} de jouer</h2>
+      <p>${S.p===0?"Réponds sans montrer l'écran, pour ne pas influencer les autres.":"Passe le téléphone. "+esc(nm(S.p-1))+" a fini, interdiction de regarder ses réponses."}</p>
+      <button class="btn" id="go">C'est moi, on y va</button>
+    </section>`;
+    app.querySelector("#go").onclick=()=>{S.step="q";S.q=0;render();};
+    return;
+  }
+  if(S.step==="q"){
+    const q=Q[S.q],a=S.ans[S.p],cur=a[q.k];
+    const done=(S.p*Q.length+S.q)/(Q.length*S.n)*100;
+    const sel=v=>q.multi?(cur||[]).includes(v):cur===v;
+    const ok=q.multi?(cur||[]).length>0:cur!==undefined;
+    app.innerHTML=`<section class="ticket">
+      <div class="stub"><span><b>${esc(nm(S.p))}</b> · ${S.p+1}/${S.n}</span><span>Question ${S.q+1} / ${Q.length}</span></div>
+      <div class="progress" aria-hidden="true"><div style="width:${done}%"></div></div>
+      <h2>${q.h}</h2>${q.s?`<p class="hint">${q.s}</p>`:""}
+      <div class="opts">${q.o.map(([v,t,d],i)=>`<button class="opt" data-i="${i}" aria-pressed="${sel(v)}"><strong>${t}</strong><span>${d}</span></button>`).join("")}</div>
+      <div class="row"><button class="ghost" id="back">${S.q===0&&S.p===0?"Retour":"Question précédente"}</button>
+      ${q.multi?`<button class="btn" id="next" ${ok?"":"disabled"}>Suivant</button>`:`<span class="tag">Un clic suffit</span>`}</div>
+    </section>`;
+    app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const v=q.o[+b.dataset.i][0];
+      if(q.multi){let arr=[...(a[q.k]||[])];
+        if(arr.includes(v))arr=arr.filter(x=>x!==v);
+        else if(q.none&&v===q.none)arr=[v];
+        else{arr=arr.filter(x=>x!==q.none);arr.push(v); if(arr.length>q.multi)arr.shift();}
+        a[q.k]=arr; render();}
+      else{a[q.k]=v; next();}
+    });
+    const nx=app.querySelector("#next"); if(nx)nx.onclick=()=>{if(ok)next();};
+    app.querySelector("#back").onclick=back;
+    return;
+  }
+  if(S.step==="res"){
+    const md=M(),list=ranked().slice(0,S.shown);
+    app.innerHTML=`<section class="results">
+      <div class="ticket" style="gap:10px">
+        <div class="stub"><span>Verdict · <b>${esc(listNames(P()))}</b></span><span>${eligible().length} ${md.noun} retenus sur ${md.items.length}</span></div>
+        <h2>${md.verdict}</h2>
+        ${list.length?"":`<p class="sum"><b>Rien ne passe tous vos filtres.</b> Assouplissez vos limites ou vos exclusions.</p>`}
+        <p class="sum">${md.rule(S.ans)} Classés selon les envies de chacun : si l'un adore et un autre déteste, ça descend dans la liste. Déjà fait ? Retirez-le, le suivant prend sa place.</p>
+      </div>
+      ${list.map((r,i)=>{const [href,lab]=md.link(r.f),x=explain(r.f);return `<article class="film${i===0?" top":""}">
+        <div class="rank">${i+1}<small>${r.tot}%</small></div>
+        <div class="fbody">
+          <h3 class="ftitle">${esc(r.f.t)}</h3>
+          <div class="meta">${md.meta(r.f).map(m=>`<span>${m}</span>`).join("")}</div>
+          <p class="pitch">${esc(r.f.p)}</p>
+          <div class="bars">${r.s.map((s,k)=>`<span>${esc(nm(k))}</span><div class="bar${k%2?" b2":""}"><div style="width:${s.pct}%"></div></div><span>${s.pct}%</span>`).join("")}</div>
+          <div class="expl"><p class="vline">${esc(verdictLine(r,i))}</p>
+            <div class="pro"><b>Pourquoi c'est pour vous</b><ul>${x.pros.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>
+            ${x.cons.length?`<div class="con"><b>À savoir</b><ul>${x.cons.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`:""}</div>
+          <div class="factions">
+            <a href="${href}" target="_blank" rel="noopener">${lab}</a>
+            <button class="ghost" data-rm="${r.f.id}">${md.seen}</button>
+          </div>
+        </div></article>`;}).join("")}
+      <div class="row">
+        <button class="ghost" id="redo">Refaire le questionnaire</button>
+        <button class="btn" id="more">Voir 6 de plus</button>
+      </div>
+    </section>`;
+    app.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{S.removed.add(+b.dataset.rm);render();});
+    app.querySelector("#more").onclick=()=>{S.shown+=6;render();};
+    app.querySelector("#redo").onclick=()=>{reset();S.step="intro";render();};
+  }
+}
+function next(){
+  const Q=M().Q;
+  if(S.q<Q.length-1){S.q++;}
+  else if(S.p<S.n-1){S.p++;S.step="pass";}
+  else{S.step="res";S.shown=6;}
+  render(); window.scrollTo({top:0});
+}
+function back(){
+  if(S.q>0)S.q--;
+  else if(S.p>0){S.p--;S.q=M().Q.length-1;}
+  else S.step="intro";
+  render();
+}
+render();
+</script>
+
+</body>
+</html>
