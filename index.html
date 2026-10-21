@@ -102,6 +102,20 @@ input[type=text]:focus{outline:2px solid var(--marquee);outline-offset:1px;borde
 .seat[aria-pressed="true"]{background:var(--marquee);border-color:var(--marquee);color:var(--velvet)}
 .seat:focus-visible{outline:2px solid var(--bulb);outline-offset:2px}
 .names{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))!important}
+.seats.wide{flex-wrap:wrap}
+.seat.pill{width:auto;height:auto;border-radius:20px;padding:8px 14px;font-size:15px;letter-spacing:.04em;text-transform:uppercase}
+.codebox{background:var(--velvet);border:1px dashed var(--marquee);border-radius:4px;padding:14px;overflow-x:auto}
+.codebox code{font-family:var(--f-mono);font-size:13px;color:var(--bulb);word-break:break-all;white-space:pre-wrap;user-select:all}
+textarea{font:14px var(--f-mono);color:var(--ink);background:var(--velvet);border:1px solid var(--line);border-radius:4px;padding:12px;resize:vertical;text-transform:none;letter-spacing:0}
+textarea:focus{outline:2px solid var(--marquee);outline-offset:1px;border-color:transparent}
+.warn{margin:0;color:var(--red);font-size:14px}
+.people{display:flex;gap:6px;flex-wrap:wrap}
+.chip.on{border-color:var(--marquee);color:var(--marquee)}
+.recap b{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--marquee);font-weight:500}
+.recap dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:4px 12px;margin:8px 0 0;font-size:13px}
+.recap dt{color:var(--muted)} .recap dd{margin:0}
+.recap-all{gap:12px} .recap-all summary{cursor:pointer;font-family:var(--f-display);text-transform:uppercase;font-size:20px;letter-spacing:.03em}
+.recaps{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;margin-top:12px}
 footer{text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.06em}
 </style>
 
@@ -149,7 +163,7 @@ footer{text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--mu
     <div class="tag" id="kick"></div>
   </header>
   <main id="app"></main>
-  <footer>L'Équipage · Chacun répond à son tour, sans regarder l'écran de l'autre.</footer>
+  <footer>L'Équipage · Chacun répond de son côté, le site croise vos envies.</footer>
 </div>
 
 <script>
@@ -643,11 +657,11 @@ function scoreGame(g,a){
 
 const MAXP={"Lethal Company":4,"Content Warning":4,"R.E.P.O.":6,"PEAK":4,"Chained Together":4,"Human: Fall Flat":8,"Overcooked! All You Can Eat":4,"Moving Out":4,"PlateUp!":4,"Unrailed!":4,"Pico Park":8,"Supermarket Together":8,"Gang Beasts":8,"Stick Fight: The Game":4,"Ultimate Chicken Horse":4,"Pummel Party":8,"Party Animals":8,"Tricky Towers":4,"Bopl Battle":4,"Golf With Your Friends":12,"Brawlhalla":8,"Counter-Strike 2":10,"Apex Legends":3,"Dota 2":10,"Trackmania":16,"Deep Rock Galactic":4,"Left 4 Dead 2":4,"Helldivers 2":4,"Borderlands 2":4,"Risk of Rain 2":4,"Gunfire Reborn":4,"Payday 2":4,"Ready or Not":5,"Warhammer: Vermintide 2":4,"Dying Light":4,"Remnant II":3,"Elden Ring Nightreign":3,"Monster Hunter: World":4,"GTFO":4,"Hunt: Showdown 1896":3,"Phasmophobia":4,"Devour":4,"Pacify":4,"Dead by Daylight":4,"The Forest":8,"Sons of the Forest":8,"Project Zomboid":16,"7 Days to Die":8,"Barotrauma":16,"Abiotic Factor":6,"Valheim":10,"Terraria":8,"Stardew Valley":8,"Don't Starve Together":6,"Raft":8,"Core Keeper":8,"Grounded":4,"Enshrouded":16,"Palworld":4,"Satisfactory":4,"Factorio":16,"Sea of Thieves":4,"It Takes Two":2,"Split Fiction":2,"A Way Out":2,"Portal 2":2,"Keep Talking and Nobody Explodes":16,"We Were Here":2,"We Were Here Together":2,"Operation: Tango":2,"The Past Within":2,"Escape Simulator":8,"Biped":2,"Unravel Two":2,"Lovers in a Dangerous Spacetime":4,"Cuphead":2,"Tabletop Simulator":10,"Civilization VI":12,"Age of Empires II: Definitive Edition":8,"Forza Horizon 5":12,"Euro Truck Simulator 2":8,"Grand Theft Auto V":30,"Baldur's Gate 3":4,"Divinity: Original Sin 2":4};
 GAMES.forEach(g=>g.max=MAXP[g.t]||4);
-const NUM=["","","deux","trois","quatre","cinq","six"];
+const NUM=["","","deux","trois","quatre","cinq","six","sept","huit"];
 
 const MODES={
  film:{items:FILMS,Q:QF,score:scoreFilm,noun:"films",kicker:"films, cultes, pépites et français",
-   h1:()=>"Séance à "+NUM[S.n],
+   h1:()=>S.n<2?"Séance de l'Équipage":"Séance à "+NUM[S.n],
    ask:"Qui est dans le canapé ?",verdict:"Ce soir à l'affiche",go:"Lancer la séance",seat:"Spectateur",
    filter(AS){const max=Math.min(...AS.map(a=>a.dur||999)),no=new Set(AS.flatMap(a=>a.no||[]));
      return this.items.filter(f=>f.d<=max&&!(no.has("horror")&&f.horror)&&!(no.has("anim")&&f.anim)&&!(no.has("romance")&&f.romance)&&!(no.has("subs")&&f.l!=="fr"&&f.l!=="en"));},
@@ -656,7 +670,7 @@ const MODES={
    link:f=>["https://www.justwatch.com/fr/recherche?q="+encodeURIComponent(f.t),"Où le regarder"],
    seen:"Déjà vu, au suivant"},
  game:{items:GAMES,Q:QG,score:scoreGame,noun:"jeux",kicker:"jeux Steam jouables en ligne entre potes",
-   h1:()=>"Soirée jeux à "+NUM[S.n],
+   h1:()=>S.n<2?"Soirée jeux":"Soirée jeux à "+NUM[S.n],
    ask:"Qui est sur Discord ce soir ?",verdict:"Ce soir, on lance",go:"Lancer la soirée",seat:"Joueur",
    filter(AS){const max=Math.min(...AS.map(a=>a.budget??999)),no=new Set(AS.flatMap(a=>a.no||[]));
      return this.items.filter(g=>g.max>=S.n&&g.price<=max&&!(no.has("horror")&&g.horror)&&!(no.has("shooter")&&g.shooter)&&!(no.has("pvp")&&g.mode==="v"));},
@@ -690,7 +704,7 @@ function explain(f){
   }
   if(film){
     if(P().every(i=>S.ans[i].int===f.i))pros.push(`Intensité ${INT[f.i]}, pile ce que vous avez tous demandé.`);
-    else P().forEach(i=>{const d=f.i-S.ans[i].int;if(d)cons.push(`${d>0?"Plus intense":"Plus léger"} que ce que voulait ${nm(i)} (${INT[f.i]}).`);});
+    else P().forEach(i=>{const d=f.i-S.ans[i].int;if(d)cons.push(`Ambiance ${INT[f.i]}, alors que ${nm(i)} voulait ${d>0?"plus léger":"plus intense"} (${INT[S.ans[i].int]}).`);});
     const max=Math.min(...P().map(i=>S.ans[i].dur));
     pros.push(max<999?`${fmt(f.d)} : ça rentre dans votre limite de ${fmt(max)}.`:`${fmt(f.d)} au compteur.`);
     const z=who(a=>a.tired==="zombie");
@@ -723,13 +737,13 @@ function explain(f){
 function verdictLine(r,i){
   const ps=r.s.map(x=>x.pct),hi=Math.max(...ps),lo=Math.min(...ps);
   const top=P().filter(k=>ps[k]===hi),bot=P().filter(k=>ps[k]===lo);
-  if(hi-lo<=10)return i===0?"Le meilleur accord de la soirée : vous êtes quasiment tous au même niveau d'envie.":"Vous êtes d'accord dessus.";
+  if(hi-lo<=10)return i===0?`Le meilleur accord de la soirée : vous êtes quasiment ${S.n>2?"tous ":""}au même niveau d'envie.`:"Vous êtes d'accord dessus.";
   return i===0?`Le meilleur compromis : ${whoI(top)} ${top.length>1?"sont":"est"} le plus emballé, mais ${whoI(bot)} y trouve${bot.length>1?"nt":""} son compte.`
              :`Plutôt pour ${whoI(top)}, ${whoI(bot)} suivra${bot.length>1?"ont":""}.`;
 }
 
 // ——————————————————— ÉTAT ET RENDU
-const S={mode:"film",n:2,step:"intro",names:["Hugo","Greg","","","",""],p:0,q:0,ans:[{},{}],removed:new Set(),shown:6};
+const S={play:"remote",me:"Hugo",codes:"",mode:"film",n:2,step:"intro",names:["Hugo","Greg","","","",""],p:0,q:0,ans:[{},{}],removed:new Set(),shown:6};
 const M=()=>MODES[S.mode];
 const app=document.getElementById("app");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -749,27 +763,120 @@ function setHeader(){
   document.getElementById("kick").textContent=`${M().Q.length} questions chacun · ${M().items.length} ${M().kicker} · 1 verdict`;
 }
 
+// ——————————————————— CODES RÉPONSE (chacun chez soi)
+const ALPH="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-";
+const b64e=t=>btoa(unescape(encodeURIComponent(t))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d=t=>{try{return decodeURIComponent(escape(atob(t.replace(/-/g,"+").replace(/_/g,"/"))));}catch(e){return null;}};
+function encodeMe(){
+  const Q=M().Q,a=S.ans[0];
+  const d=Q.map(q=>{if(q.multi){let m=0;(a[q.k]||[]).forEach(v=>{m|=1<<q.o.findIndex(o=>o[0]===v);});return ALPH[m];}
+    return ALPH[q.o.findIndex(o=>o[0]===a[q.k])];}).join("");
+  return `EQ${S.mode==="film"?"F":"J"}.${b64e(nm(0).slice(0,20))}.${d}`;
+}
+function parseCodes(txt){
+  const re=/EQ([FJ])\.([A-Za-z0-9_-]+)\.([0-9A-Za-z_-]+)/g,found=new Map();let m,modes=new Set(),bad=0;
+  while((m=re.exec(txt||""))){
+    const mode=m[1]==="F"?"film":"game",Q=MODES[mode].Q,name=b64d(m[2]),d=m[3];
+    if(!name||d.length!==Q.length){bad++;continue;}
+    const ans={};let ok=true;
+    Q.forEach((q,i)=>{const n=ALPH.indexOf(d[i]);if(n<0){ok=false;return;}
+      if(q.multi){ans[q.k]=q.o.filter((o,b)=>n&(1<<b)).map(o=>o[0]);if(!ans[q.k].length)ok=false;}
+      else{if(!q.o[n])ok=false;else ans[q.k]=q.o[n][0];}});
+    if(!ok){bad++;continue;}
+    modes.add(mode);found.set(mode+"|"+name.toLowerCase(),{name,mode,ans});
+  }
+  let people=[...found.values()],mode=people[0]?.mode||S.mode,warn="";
+  if(modes.size>1){const nf=people.filter(x=>x.mode==="film").length;mode=nf>=people.length-nf?"film":"game";
+    warn=`Il y a des codes film et des codes jeux mélangés : on garde ceux de la soirée ${mode==="film"?"film":"jeux"}.`;people=people.filter(x=>x.mode===mode);}
+  if(people.length>8){people=people.slice(0,8);warn+=" Maximum 8 personnes : les suivantes sont ignorées.";}
+  if(bad)warn+=` ${bad} code${bad>1?"s":""} illisible${bad>1?"s":""} (copié en entier ?).`;
+  return {people,mode,warn:warn.trim()};
+}
+function recapHTML(i,compact){
+  const Q=M().Q,a=S.ans[i]||{};
+  const val=q=>{const v=a[q.k];const t=x=>(q.o.find(o=>o[0]===x)||[,"?"])[1];return q.multi?(v||[]).map(t).join(", "):t(v);};
+  return `<div class="recap"><b>${compact?esc(nm(i)):"Tes réponses"}</b><dl>${Q.map(q=>`<dt>${esc(q.h.replace(/ \?$|…$/,""))}</dt><dd>${esc(val(q))}</dd>`).join("")}</dl></div>`;
+}
+function copyText(t,el,out){
+  const done=()=>{out.textContent="Copié, colle-le sur Discord.";};
+  try{navigator.clipboard.writeText(t).then(done,()=>sel());}catch(e){sel();}
+  function sel(){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);out.textContent="Texte sélectionné : fais Ctrl+C.";}
+}
+
 function render(){
   setHeader();
   const Q=M().Q;
   if(S.step==="intro"){
+    const remote=S.play==="remote";
     app.innerHTML=`<section class="ticket">
-      <div class="stub"><span>Admission · <b>${S.n} personnes</b></span><span>Salle L'Équipage · Séance de nuit</span></div>
+      <div class="stub"><span>Admission · <b>L'Équipage</b></span><span>Salle L'Équipage · Séance de nuit</span></div>
       <div class="tabs" role="tablist" aria-label="Rubrique">
         <button role="tab" class="tabb" data-m="film" aria-selected="${S.mode==="film"}">Soirée film</button>
         <button role="tab" class="tabb" data-m="game" aria-selected="${S.mode==="game"}">Soirée jeux Steam</button>
       </div>
+      <div class="count"><span class="tag">Comment vous jouez ?</span>
+        <div class="seats wide">
+          <button class="seat pill" data-play="remote" aria-pressed="${remote}">Chacun chez soi</button>
+          <button class="seat pill" data-play="local" aria-pressed="${!remote}">Sur le même écran</button>
+        </div></div>
+      ${remote?`
+      <h2>Chacun son questionnaire</h2>
+      <p class="hint">Réponds aux ${Q.length} questions sur ton écran. À la fin, tu obtiens un code à coller sur Discord. Quand tout le monde a posté le sien, l'un de vous colle tous les codes ici et vous voyez les réponses de chacun et le verdict commun.</p>
+      <div class="names"><label for="me">Ton prénom<input type="text" id="me" maxlength="20" placeholder="Ton prénom" value="${esc(S.me)}" autocomplete="off"></label></div>
+      <div class="row"><button class="ghost" id="comb">J'ai déjà les codes de tout le monde</button><button class="btn" id="go">Faire mon questionnaire</button></div>`
+      :`
       <h2>${M().ask}</h2>
       <div class="count"><span class="tag">Combien vous êtes ?</span>
         <div class="seats">${[2,3,4,5,6].map(k=>`<button class="seat" data-n="${k}" aria-pressed="${S.n===k}">${k}</button>`).join("")}</div></div>
-      <p class="hint">Chacun répond à ${Q.length} questions de son côté. On croise vos envies et on vous sort les ${M().noun} où vous tombez d'accord.</p>
+      <p class="hint">Chacun répond à ${Q.length} questions à tour de rôle sur cet écran. On croise vos envies et on vous sort les ${M().noun} où vous tombez d'accord.</p>
       <div class="names">${P().map(i=>`<label for="n${i}">${M().seat} ${i+1}<input type="text" id="n${i}" data-i="${i}" placeholder="${i===0?"Ton prénom":"Prénom"}" value="${esc(S.names[i])}" autocomplete="off"></label>`).join("")}</div>
-      <div class="row"><span class="tag">Durée : ${S.n} minutes environ</span><button class="btn" id="go">${M().go}</button></div>
+      <div class="row"><span class="tag">Durée : ${S.n} minutes environ</span><button class="btn" id="go">${M().go}</button></div>`}
     </section>`;
     app.querySelectorAll(".tabb").forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;reset();render();});
-    app.querySelectorAll(".seat").forEach(b=>b.onclick=()=>{S.n=+b.dataset.n;reset();render();});
-    app.querySelectorAll(".names input").forEach(inp=>inp.oninput=e=>S.names[+e.target.dataset.i]=e.target.value);
-    app.querySelector("#go").onclick=()=>{reset();S.step="pass";S.p=0;render();};
+    app.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{S.play=b.dataset.play;S.n=S.play==="remote"?1:Math.max(2,S.n);reset();render();});
+    app.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{S.n=+b.dataset.n;reset();render();});
+    app.querySelectorAll(".names input[data-i]").forEach(inp=>inp.oninput=e=>S.names[+e.target.dataset.i]=e.target.value);
+    const me=app.querySelector("#me"); if(me)me.oninput=e=>S.me=e.target.value;
+    const cb=app.querySelector("#comb"); if(cb)cb.onclick=()=>{S.step="combine";render();};
+    app.querySelector("#go").onclick=()=>{
+      if(remote){S.n=1;S.names[0]=S.me.trim()||"Moi";reset();S.p=0;S.q=0;S.step="q";}
+      else{reset();S.step="pass";S.p=0;}
+      render();};
+    return;
+  }
+  if(S.step==="code"){
+    const code=encodeMe(),msg=`🏴‍☠️ ${nm(0)} a répondu au questionnaire ${S.mode==="film"?"film":"jeux"} de L'Équipage. Mon code : ${code}`;
+    app.innerHTML=`<section class="ticket">
+      <div class="stub"><span><b>${esc(nm(0))}</b> · questionnaire terminé</span><span>${S.mode==="film"?"Soirée film":"Soirée jeux"}</span></div>
+      <h2>Ton code réponse</h2>
+      <p class="hint">Copie ce message et colle-le sur Discord. Il contient toutes tes réponses.</p>
+      <div class="codebox"><code id="msg">${esc(msg)}</code></div>
+      <div class="row"><span class="tag" id="copied" aria-live="polite"></span><button class="btn" id="copy">Copier pour Discord</button></div>
+      ${recapHTML(0)}
+      <div class="row"><button class="ghost" id="redo">Recommencer</button><button class="btn" id="comb">Combiner les codes</button></div>
+    </section>`;
+    app.querySelector("#copy").onclick=()=>copyText(msg,app.querySelector("#msg"),app.querySelector("#copied"));
+    app.querySelector("#comb").onclick=()=>{if(!S.codes.includes(code))S.codes=(S.codes?S.codes+"\n":"")+code;S.step="combine";render();};
+    app.querySelector("#redo").onclick=()=>{reset();S.step="intro";render();};
+    return;
+  }
+  if(S.step==="combine"){
+    const parsed=parseCodes(S.codes);
+    app.innerHTML=`<section class="ticket">
+      <div class="stub"><span>Combiner · <b>L'Équipage</b></span><span>${parsed.people.length} ${parsed.people.length>1?"personnes détectées":"personne détectée"}</span></div>
+      <h2>Collez tous les codes</h2>
+      <p class="hint">Copiez les messages de chacun depuis Discord et collez-les ici, même en vrac : le site retrouve les codes tout seul. Chacun peut le faire de son côté, le verdict sera le même pour tout le monde.</p>
+      <label for="codes">Messages ou codes<textarea id="codes" rows="5" placeholder="🏴‍☠️ Greg a répondu… Mon code : EQF.…">${esc(S.codes)}</textarea></label>
+      ${parsed.warn?`<p class="warn">${esc(parsed.warn)}</p>`:""}
+      ${parsed.people.length?`<div class="people">${parsed.people.map((x,i)=>`<span class="chip on">${esc(x.name)}</span>`).join("")}</div>`:""}
+      <div class="row"><button class="ghost" id="back">Retour</button><button class="btn" id="go" ${parsed.people.length>=2?"":"disabled"}>${parsed.people.length>=2?"Voir le verdict":"Il faut au moins 2 codes"}</button></div>
+    </section>`;
+    const ta=app.querySelector("#codes");
+    ta.oninput=e=>{S.codes=e.target.value;const pos=e.target.selectionStart;render();const t=app.querySelector("#codes");t.focus();t.setSelectionRange(pos,pos);};
+    app.querySelector("#back").onclick=()=>{S.step="intro";render();};
+    app.querySelector("#go").onclick=()=>{if(parsed.people.length<2)return;
+      S.mode=parsed.mode;S.n=parsed.people.length;S.names=parsed.people.map(x=>x.name);S.ans=parsed.people.map(x=>x.ans);
+      S.removed.clear();S.shown=6;S.step="res";render();window.scrollTo({top:0});};
     return;
   }
   if(S.step==="pass"){
@@ -832,6 +939,7 @@ function render(){
             <button class="ghost" data-rm="${r.f.id}">${md.seen}</button>
           </div>
         </div></article>`;}).join("")}
+      <details class="ticket recap-all"><summary>Les réponses de chacun</summary><div class="recaps">${P().map(k=>recapHTML(k,true)).join("")}</div></details>
       <div class="row">
         <button class="ghost" id="redo">Refaire le questionnaire</button>
         <button class="btn" id="more">Voir 6 de plus</button>
@@ -846,6 +954,7 @@ function next(){
   const Q=M().Q;
   if(S.q<Q.length-1){S.q++;}
   else if(S.p<S.n-1){S.p++;S.step="pass";}
+  else if(S.play==="remote"){S.step="code";}
   else{S.step="res";S.shown=6;}
   render(); window.scrollTo({top:0});
 }
