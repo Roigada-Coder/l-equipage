@@ -1,10 +1,6 @@
 // Bot Discord de L'Équipage : /soiree film | jeux
 // Chacun répond en privé, le bot croise les envies et poste le verdict.
-require("dotenv").config();
-// Nettoie les valeurs du .env (espaces, guillemets, préfixe "Bot " collés par erreur).
-for (const k of ["DISCORD_TOKEN", "CLIENT_ID", "GUILD_ID"]) {
-  if (process.env[k]) process.env[k] = process.env[k].trim().replace(/^["']|["']$/g, "").replace(/^Bot\s+/i, "").trim();
-}
+const ENV = require("./env.cjs");
 const {
   Client, GatewayIntentBits, Events, MessageFlags,
   ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder,
@@ -234,8 +230,8 @@ client.once(Events.ClientReady, (c) => {
   console.log(`🏴‍☠️ Bot connecté en tant que ${c.user.tag}. Tapez /soiree dans Discord. (Ctrl+C pour arrêter)`);
 });
 
-if (!process.env.DISCORD_TOKEN) {
-  console.error("Il manque DISCORD_TOKEN dans le fichier .env (voir README).");
+if (ENV.missing.includes("DISCORD_TOKEN")) {
+  console.error(`❌ DISCORD_TOKEN est vide dans .env.\n   Fichier lu : ${ENV.envPath}`);
   process.exit(1);
 }
 client.login(process.env.DISCORD_TOKEN).catch((err) => {

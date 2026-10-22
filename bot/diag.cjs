@@ -6,8 +6,8 @@ const path = require("path");
 function diagnoseToken() {
   const out = [];
   const envPath = path.join(__dirname, ".env");
-  const raw = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
-  const lines = raw.split(/\r?\n/).filter((l) => /^\s*DISCORD_TOKEN\s*=/.test(l));
+  const raw = fs.existsSync(envPath) ? fs.readFileSync(envPath).toString("utf8").replace(/\u0000/g, "") : "";
+  const lines = raw.split(/\r?\n/).filter((l) => /^\s*(\uFEFF)?DISCORD_TOKEN\s*=/.test(l));
   if (lines.length > 1) {
     out.push(`• Il y a ${lines.length} lignes DISCORD_TOKEN dans .env : seule la première est utilisée. Garde une seule ligne, avec le nouveau token.`);
   }

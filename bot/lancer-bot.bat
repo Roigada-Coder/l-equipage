@@ -25,10 +25,6 @@ if not exist .env (
   start /wait notepad .env
 )
 
-findstr /r /c:"^DISCORD_TOKEN=..*" .env >nul || goto manque
-findstr /r /c:"^CLIENT_ID=..*" .env >nul || goto manque
-findstr /r /c:"^GUILD_ID=..*" .env >nul || goto manque
-
 if not exist node_modules (
   echo Premiere installation, ca prend une minute...
   call npm install
@@ -51,11 +47,4 @@ if not exist .commande-installee (
 )
 
 node bot.cjs
-pause
-exit /b
-
-:manque
-echo.
-echo  Une des trois valeurs est vide dans .env. Le Bloc-notes va s'ouvrir : complete-la, enregistre, ferme, puis relance ce fichier.
-start notepad .env
 pause

@@ -1,14 +1,10 @@
 // Installe la commande /soiree sur le serveur L'Équipage (à lancer une fois).
-require("dotenv").config();
-// Nettoie les valeurs du .env (espaces, guillemets, préfixe "Bot " collés par erreur).
-for (const k of ["DISCORD_TOKEN", "CLIENT_ID", "GUILD_ID"]) {
-  if (process.env[k]) process.env[k] = process.env[k].trim().replace(/^["']|["']$/g, "").replace(/^Bot\s+/i, "").trim();
-}
+const ENV = require("./env.cjs");
 const { REST, Routes, SlashCommandBuilder } = require("discord.js");
 
 const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID } = process.env;
-if (!DISCORD_TOKEN || !CLIENT_ID || !GUILD_ID) {
-  console.error("Il manque DISCORD_TOKEN, CLIENT_ID ou GUILD_ID dans le fichier .env (voir README).");
+if (ENV.missing.length) {
+  console.error(`❌ Valeur vide dans .env : ${ENV.missing.join(", ")}.\n   Fichier lu : ${ENV.envPath}`);
   process.exit(1);
 }
 
