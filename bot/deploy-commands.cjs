@@ -1,5 +1,9 @@
 // Installe la commande /soiree sur le serveur L'Équipage (à lancer une fois).
 require("dotenv").config();
+// Nettoie les valeurs du .env (espaces, guillemets, préfixe "Bot " collés par erreur).
+for (const k of ["DISCORD_TOKEN", "CLIENT_ID", "GUILD_ID"]) {
+  if (process.env[k]) process.env[k] = process.env[k].trim().replace(/^["']|["']$/g, "").replace(/^Bot\s+/i, "").trim();
+}
 const { REST, Routes, SlashCommandBuilder } = require("discord.js");
 
 const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID } = process.env;
@@ -22,5 +26,7 @@ new REST()
   .then(() => console.log("✅ Commande /soiree installée sur le serveur."))
   .catch((err) => {
     console.error("❌ Échec de l'installation de la commande :", err.message);
+    if (String(err.status) === "401" || /401/.test(err.message))
+      console.error("   → Le token est refusé. Va dans le Developer Portal, onglet Bot, clique sur Reset Token et colle le nouveau dans .env.");
     process.exit(1);
   });

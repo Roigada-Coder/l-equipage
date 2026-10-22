@@ -1,6 +1,10 @@
 // Bot Discord de L'Équipage : /soiree film | jeux
 // Chacun répond en privé, le bot croise les envies et poste le verdict.
 require("dotenv").config();
+// Nettoie les valeurs du .env (espaces, guillemets, préfixe "Bot " collés par erreur).
+for (const k of ["DISCORD_TOKEN", "CLIENT_ID", "GUILD_ID"]) {
+  if (process.env[k]) process.env[k] = process.env[k].trim().replace(/^["']|["']$/g, "").replace(/^Bot\s+/i, "").trim();
+}
 const {
   Client, GatewayIntentBits, Events, MessageFlags,
   ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder,
@@ -234,4 +238,8 @@ if (!process.env.DISCORD_TOKEN) {
   console.error("Il manque DISCORD_TOKEN dans le fichier .env (voir README).");
   process.exit(1);
 }
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN).catch((err) => {
+  console.error("❌ Connexion refusée par Discord :", err.message);
+  console.error("   → Vérifie DISCORD_TOKEN dans .env : il faut le token de l'onglet Bot (Reset Token), pas le Client Secret ni l'Application ID.");
+  process.exit(1);
+});
