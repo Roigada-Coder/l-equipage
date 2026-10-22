@@ -172,24 +172,26 @@ async function onComponent(i) {
         .setDescription(`Tes réponses sont enregistrées. Tu peux refaire le questionnaire avec **Répondre** tant que le verdict n'est pas tombé.\n\n${recapText(s.mode, draft)}`)],
       components: [],
     });
-    return refreshLobby(s);
+    refreshLobby(s);
+    return;
   }
 
   if (kind === "v") {
     if (s.closed) return privately(i, "Le verdict est déjà tombé.");
     if (s.answers.size < MIN_PLAYERS) return privately(i, `Il faut au moins ${MIN_PLAYERS} réponses pour le verdict.`);
     s.closed = true;
+    await i.deferReply(); // répond tout de suite à Discord (délai de 3 s), le verdict suit
     s.players = [...s.answers.values()];
     s.result = engine.verdict(s.mode, s.players);
     s.shown = Math.min(PAGE, s.result.list.length);
-    await refreshLobby(s);
+    refreshLobby(s);
     const head = new EmbedBuilder().setColor(GOLD)
       .setTitle(`🏴‍☠️ Verdict · ${LABEL[s.mode]}`)
       .setDescription(s.result.list.length
         ? `${s.result.rule}\n${s.result.eligible} ${s.result.noun} retenus sur ${s.result.total}, classés selon les envies de ${s.players.map((p) => p.name).join(", ")}.`
         : "Rien ne passe tous vos filtres. Relancez `/soiree` en assouplissant la durée, le budget ou les exclusions.");
     const embeds = [head, ...s.result.list.slice(0, s.shown).map((it, n) => resultEmbed(it, n + 1))];
-    return i.reply({ embeds, components: s.result.list.length ? [moreRow(s)] : [] });
+    return i.editReply({ embeds, components: s.result.list.length ? [moreRow(s)] : [] });
   }
 
   if (kind === "n") {
@@ -216,15 +218,19 @@ async function onComponent(i) {
 }
 
 client.on(Events.InteractionCreate, async (i) => {
+  const t0 = Date.now();
   try {
     if (i.isChatInputCommand() && i.commandName === "soiree") return await onCommand(i);
     if (i.isButton() || i.isStringSelectMenu()) return await onComponent(i);
   } catch (err) {
+    console.error(`Erreur après ${Date.now() - t0} ms :`);
     console.error(err);
     const msg = { content: "Oups, une erreur est survenue. Réessaie dans un instant.", flags: MessageFlags.Ephemeral };
-    if (i.isRepliable()) (i.replied || i.deferred ? i.followUp(msg) : i.reply(msg)).catch(() => {});
+    if (i.isRepliable()) (i.deferred ? i.editReply({ content: msg.content }) : i.replied ? i.followUp(msg) : i.reply(msg)).catch(() => {});
   }
 });
+
+process.on("unhandledRejection", (err) => console.error("Erreur non gérée :", err?.message || err));
 
 client.once(Events.ClientReady, (c) => {
   console.log(`🏴‍☠️ Bot connecté en tant que ${c.user.tag}. Tapez /soiree dans Discord. (Ctrl+C pour arrêter)`);
