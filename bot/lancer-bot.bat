@@ -42,6 +42,12 @@ if not exist node_modules (
 if not exist .commande-installee (
   echo Installation de la commande /soiree sur le serveur...
   node deploy-commands.cjs && echo ok> .commande-installee
+  if not exist .commande-installee (
+    echo.
+    echo Corrige le fichier .env comme indique ci-dessus, enregistre, puis relance ce fichier.
+    pause
+    exit /b
+  )
 )
 
 node bot.cjs

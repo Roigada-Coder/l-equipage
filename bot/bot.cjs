@@ -240,6 +240,6 @@ if (!process.env.DISCORD_TOKEN) {
 }
 client.login(process.env.DISCORD_TOKEN).catch((err) => {
   console.error("❌ Connexion refusée par Discord :", err.message);
-  console.error("   → Vérifie DISCORD_TOKEN dans .env : il faut le token de l'onglet Bot (Reset Token), pas le Client Secret ni l'Application ID.");
+  console.error("\nDiagnostic :\n" + require("./diag.cjs").diagnoseToken());
   process.exit(1);
 });

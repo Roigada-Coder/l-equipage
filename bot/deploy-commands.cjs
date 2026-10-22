@@ -27,6 +27,6 @@ new REST()
   .catch((err) => {
     console.error("❌ Échec de l'installation de la commande :", err.message);
     if (String(err.status) === "401" || /401/.test(err.message))
-      console.error("   → Le token est refusé. Va dans le Developer Portal, onglet Bot, clique sur Reset Token et colle le nouveau dans .env.");
+      console.error("\nDiagnostic :\n" + require("./diag.cjs").diagnoseToken());
     process.exit(1);
   });
