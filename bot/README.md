@@ -57,11 +57,13 @@ GUILD_ID=987654321098765432
 
 ```
 npm install
-npm run deploy
-npm start
+node deploy-commands.cjs
+node bot.cjs
 ```
 
-`npm install` et `npm run deploy` ne servent que la première fois.
+Les deux premières commandes ne servent que la première fois.
+
+> Sur Windows, n'ouvre jamais les fichiers `.cjs` par double-clic : seul `lancer-bot.bat` sert à démarrer le bot.
 
 ---
 
@@ -76,7 +78,7 @@ De 2 à 8 personnes par soirée. Si le bot redémarre, les soirées en cours son
 
 ## En cas de problème
 
-- **`/soiree` n'apparaît pas** : relance `npm run deploy` (ou supprime le dossier `node_modules` puis relance `lancer-bot.bat`), et vérifie `CLIENT_ID` et `GUILD_ID`.
+- **`/soiree` n'apparaît pas** : supprime le fichier `.commande-installee` dans le dossier `bot` puis relance `lancer-bot.bat`, et vérifie `CLIENT_ID` et `GUILD_ID`.
 - **« Il manque DISCORD_TOKEN »** : le fichier `.env` est absent, mal nommé ou vide.
 - **`An invalid token was provided`** : régénère le token dans le Developer Portal (Reset Token) et remplace-le dans `.env`.
 - **Le bot ne répond pas dans un salon** : vérifie qu'il a le droit de voir et d'écrire dans ce salon (permissions de la catégorie Skret).

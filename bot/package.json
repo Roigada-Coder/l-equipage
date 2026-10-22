@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Bot Discord de L'Équipage : questionnaire de groupe pour choisir un film ou un jeu Steam.",
-  "main": "bot.js",
+  "main": "bot.cjs",
   "engines": { "node": ">=18" },
   "scripts": {
-    "deploy": "node deploy-commands.js",
-    "start": "node bot.js"
+    "deploy": "node deploy-commands.cjs",
+    "start": "node bot.cjs"
   },
   "dependencies": {
     "discord.js": "^14.16.3",

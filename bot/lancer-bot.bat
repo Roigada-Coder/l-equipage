@@ -32,11 +32,19 @@ findstr /r /c:"^GUILD_ID=..*" .env >nul || goto manque
 if not exist node_modules (
   echo Premiere installation, ca prend une minute...
   call npm install
-  echo Installation de la commande /soiree sur le serveur...
-  call npm run deploy
+  if errorlevel 1 (
+    echo L'installation a echoue. Verifie ta connexion internet puis relance ce fichier.
+    pause
+    exit /b
+  )
 )
 
-node bot.js
+if not exist .commande-installee (
+  echo Installation de la commande /soiree sur le serveur...
+  node deploy-commands.cjs && echo ok> .commande-installee
+)
+
+node bot.cjs
 pause
 exit /b
 

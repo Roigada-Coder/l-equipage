@@ -5,7 +5,7 @@ const {
   Client, GatewayIntentBits, Events, MessageFlags,
   ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder,
 } = require("discord.js");
-const engine = require("./engine");
+const engine = require("./engine.cjs");
 
 const GOLD = 0xf4b63f, PLUM = 0x3a2230, RED = 0xe2574c;
 const LABEL = { film: "Soirée film", game: "Soirée jeux Steam" };
