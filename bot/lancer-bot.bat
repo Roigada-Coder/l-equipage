@@ -10,11 +10,24 @@ if errorlevel 1 (
   exit /b
 )
 
+rem Fichier mal nomme par Windows : .env.txt devient .env
+if not exist .env if exist .env.txt ren .env.txt .env
+
 if not exist .env (
-  echo Il manque le fichier .env : copie .env.example en .env et remplis-le ^(voir README^).
-  pause
-  exit /b
+  copy /y .env.example .env >nul
+  echo.
+  echo  Le fichier .env vient d'etre cree et s'ouvre dans le Bloc-notes.
+  echo  1. Colle ton token apres DISCORD_TOKEN=
+  echo  2. Colle l'Application ID apres CLIENT_ID=
+  echo  3. Colle l'identifiant du serveur apres GUILD_ID=
+  echo  4. Enregistre avec Ctrl+S et ferme le Bloc-notes.
+  echo.
+  start /wait notepad .env
 )
+
+findstr /r /c:"^DISCORD_TOKEN=..*" .env >nul || goto manque
+findstr /r /c:"^CLIENT_ID=..*" .env >nul || goto manque
+findstr /r /c:"^GUILD_ID=..*" .env >nul || goto manque
 
 if not exist node_modules (
   echo Premiere installation, ca prend une minute...
@@ -24,4 +37,11 @@ if not exist node_modules (
 )
 
 node bot.js
+pause
+exit /b
+
+:manque
+echo.
+echo  Une des trois valeurs est vide dans .env. Le Bloc-notes va s'ouvrir : complete-la, enregistre, ferme, puis relance ce fichier.
+start notepad .env
 pause
