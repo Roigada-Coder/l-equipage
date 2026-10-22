@@ -74,7 +74,7 @@ Les deux premières commandes ne servent que la première fois.
 3. Le message de la soirée affiche qui a répondu.
 4. Quand tout le monde a fini, quelqu'un clique sur **Voir le verdict**. Le top 3 s'affiche, avec un bouton pour d'autres idées et un pour voir les réponses de chacun.
 
-De 2 à 8 personnes par soirée. Si le bot redémarre, les soirées en cours sont perdues : relancez simplement `/soiree`.
+De 1 à 8 personnes par soirée (seul, le verdict marche aussi : pratique pour tester). Si le bot redémarre, les soirées en cours sont perdues : relancez simplement `/soiree`.
 
 ## En cas de problème
 

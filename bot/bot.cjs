@@ -9,7 +9,7 @@ const engine = require("./engine.cjs");
 
 const GOLD = 0xf4b63f, PLUM = 0x3a2230, RED = 0xe2574c;
 const LABEL = { film: "Soirée film", game: "Soirée jeux Steam" };
-const MIN_PLAYERS = 2, MAX_PLAYERS = 8, PAGE = 3;
+const MIN_PLAYERS = 1, MAX_PLAYERS = 8, PAGE = 3;
 
 /** Soirées en cours, en mémoire (perdues si le bot redémarre). */
 const sessions = new Map();
@@ -35,7 +35,7 @@ function lobbyEmbed(s) {
       name: `Ont répondu (${names.length})`,
       value: names.length ? names.map((n) => `✅ ${n}`).join("\n") : "Personne pour l'instant.",
     });
-  if (!s.closed) e.setFooter({ text: `Quand tout le monde a répondu, cliquez sur « Voir le verdict » (${MIN_PLAYERS} personnes minimum).` });
+  if (!s.closed) e.setFooter({ text: "Quand tout le monde a répondu, cliquez sur « Voir le verdict »." });
   return e;
 }
 
@@ -178,7 +178,7 @@ async function onComponent(i) {
 
   if (kind === "v") {
     if (s.closed) return privately(i, "Le verdict est déjà tombé.");
-    if (s.answers.size < MIN_PLAYERS) return privately(i, `Il faut au moins ${MIN_PLAYERS} réponses pour le verdict.`);
+    if (s.answers.size < MIN_PLAYERS) return privately(i, "Personne n'a encore répondu : cliquez d'abord sur Répondre.");
     s.closed = true;
     await i.deferReply(); // répond tout de suite à Discord (délai de 3 s), le verdict suit
     s.players = [...s.answers.values()];

@@ -684,7 +684,7 @@ const MODES={
 const ENG=["","une soirée","quelques soirées","des semaines"],INT=["","tranquille","équilibrée","intense"];
 const P=()=>[...Array(S.n).keys()];
 const listNames=idx=>{const n=idx.map(nm);return n.length<2?n.join(""):n.slice(0,-1).join(", ")+" et "+n[n.length-1];};
-function whoI(idx){return !idx.length?"":idx.length===S.n?(S.n===2?"vous deux":"vous tous"):listNames(idx);}
+function whoI(idx){return !idx.length?"":idx.length===S.n&&S.n>1?(S.n===2?"vous deux":"vous tous"):listNames(idx);}
 function who(pred){return whoI(P().filter(i=>pred(S.ans[i])));}
 const plural=w=>w.startsWith("vous")?"êtes":w.includes(" et ")?"sont":"est";
 const isPl=w=>w.startsWith("vous")||w.includes(" et ");
@@ -697,16 +697,16 @@ function explain(f){
   const yes=P().filter(i=>hits[i].length),no=P().filter(i=>!hits[i].length);
   if(yes.length===S.n){
     const same=hits.every(h=>h.join()===hits[0].join());
-    pros.push(same?`Il coche l'envie que vous avez en commun : ${lab(hits[0])}.`:`Il coche les envies de chacun : ${yes.map(i=>`${lab(hits[i])} pour ${nm(i)}`).join(", ")}.`);
+    pros.push(S.n===1?`Il coche ton envie : ${lab(hits[0])}.`:same?`Il coche l'envie que vous avez en commun : ${lab(hits[0])}.`:`Il coche les envies de chacun : ${yes.map(i=>`${lab(hits[i])} pour ${nm(i)}`).join(", ")}.`);
   } else if(yes.length){
     pros.push(`Il répond ${yes.length>1?"aux envies":"à l'envie"} de ${yes.map(i=>`${nm(i)} (${lab(hits[i])})`).join(", ")}.`);
     no.forEach(i=>cons.push(`${nm(i)} voulait plutôt ${lab(S.ans[i].mood||[])}. C'est le compromis.`));
   }
   if(film){
-    if(P().every(i=>S.ans[i].int===f.i))pros.push(`Intensité ${INT[f.i]}, pile ce que vous avez tous demandé.`);
+    if(P().every(i=>S.ans[i].int===f.i))pros.push(`Intensité ${INT[f.i]}, pile ce que ${S.n===1?"tu as demandé":"vous avez tous demandé"}.`);
     else P().forEach(i=>{const d=f.i-S.ans[i].int;if(d)cons.push(`Ambiance ${INT[f.i]}, alors que ${nm(i)} voulait ${d>0?"plus léger":"plus intense"} (${INT[S.ans[i].int]}).`);});
     const max=Math.min(...P().map(i=>S.ans[i].dur));
-    pros.push(max<999?`${fmt(f.d)} : ça rentre dans votre limite de ${fmt(max)}.`:`${fmt(f.d)} au compteur.`);
+    pros.push(max<999?`${fmt(f.d)} : ça rentre dans ${S.n===1?"ta":"votre"} limite de ${fmt(max)}.`:`${fmt(f.d)} au compteur.`);
     const z=who(a=>a.tired==="zombie");
     if(z&&f.d<=100)pros.push(`Court et sans prise de tête, adapté à la fatigue de ${z}.`);
     const fr=who(a=>a.lang==="fr");
@@ -723,8 +723,8 @@ function explain(f){
     if(c&&!f.mode.includes("c"))cons.push(`Uniquement en versus alors que ${alors(c)} de la coop.`);
     if(v&&!f.mode.includes("v"))cons.push(`Uniquement en coop alors que ${alors(v)} s'affronter.`);
     const max=Math.min(...P().map(i=>S.ans[i].budget));
-    pros.push(f.price===0?"Gratuit : vous pouvez lancer tout de suite.":max<999?`Environ ${f.price} € chacun, dans votre budget de ${max} €.`:`Environ ${f.price} € chacun.`);
-    if(P().every(i=>S.ans[i].eng===f.e))pros.push(`Engagement prévu : ${ENG[f.e]}, exactement ce que vous visiez.`);
+    pros.push(f.price===0?"Gratuit : vous pouvez lancer tout de suite.":max<999?`Environ ${f.price} € chacun, dans ${S.n===1?"ton":"votre"} budget de ${max} €.`:`Environ ${f.price} € chacun.`);
+    if(P().every(i=>S.ans[i].eng===f.e))pros.push(`Engagement prévu : ${ENG[f.e]}, exactement ce que ${S.n===1?"tu visais":"vous visiez"}.`);
     else P().forEach(i=>{const d=f.e-S.ans[i].eng;if(d)cons.push(d>0?`Demande plus de temps (${ENG[f.e]}) que ce que ${nm(i)} voulait donner.`:`Plus court que ce que ${nm(i)} cherchait : on en fait vite le tour.`);});
     const z=who(a=>a.tired==="zombie");
     if(z&&f.e===1)pros.push(`Prise en main immédiate, parfait pour l'état de ${z}.`);
@@ -735,6 +735,7 @@ function explain(f){
   return {pros,cons};
 }
 function verdictLine(r,i){
+  if(S.n===1)return i===0?"Ton meilleur choix pour ce soir.":"Une autre bonne option pour toi.";
   const ps=r.s.map(x=>x.pct),hi=Math.max(...ps),lo=Math.min(...ps);
   const top=P().filter(k=>ps[k]===hi),bot=P().filter(k=>ps[k]===lo);
   if(hi-lo<=10)return i===0?`Le meilleur accord de la soirée : vous êtes quasiment ${S.n>2?"tous ":""}au même niveau d'envie.`:"Vous êtes d'accord dessus.";
